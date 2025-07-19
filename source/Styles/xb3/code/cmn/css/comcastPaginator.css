@@ -1,0 +1,64 @@
+/*
+ * If not stated otherwise in this file or this component's Licenses.txt file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2018 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+.pagination-main {
+    background-color: #39BAF1;
+    text-align: center;
+    height: 60px;
+    margin-top: 8px;
+}
+.pagination-main > span {
+    margin: 10px;
+}
+.pagination-navigation {
+    padding: 10px 0;
+}
+.pagination-navigation > span > a, a.pagination-navigation > span > a {
+    padding: 3px 10px;
+    margin: 1px;
+    background: #fff url(/cmn/img/btn_bg.png) repeat-x 0 -14px;
+    color: #555;
+    text-decoration: none;
+    border: solid 1px #d0d0d0;
+    cursor: pointer;
+    outline: 0;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 11px;
+}
+.pagination-navigation > span > a:hover {
+    background: #fff url(/cmn/img/btn_bg.png) repeat-x 0 bottom;
+    color: #ffe51e;
+    outline: 0;
+}
+.pagination-navigation > span > a[class='disabled'] {
+    background: #fff;
+    color: #ccc !important;
+    cursor: not-allowed;
+}
+.pagination-navigation-disabled:hover {
+    background: #fff url(/cmn/img/btn_bg.png) repeat-x 0 bottom;
+}
+.pagination-page-numbers > a.pagination-navigation-disabled {
+    background: #5D666A;
+}
+.pagination-navigation-disabled {
+    background: #fff;
+    color: #ccc !important;
+    cursor: not-allowed;   
+}

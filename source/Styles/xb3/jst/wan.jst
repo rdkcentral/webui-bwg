@@ -1,0 +1,909 @@
+<?%
+/*
+ If not stated otherwise in this file or this component's Licenses.txt file the
+ following copyright and licenses apply:
+
+ Copyright 2018 RDK Management
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+?>
+<?% include('includes/header.jst'); ?>
+
+<!-- $Id: port_forwarding_add.jst 3158 2010-01-08 23:32:05Z slemoine $ -->
+
+<div id="sub-header">
+	<?% include('includes/userbar.jst'); ?>
+</div><!-- end #sub-header -->
+
+<?% include('includes/nav.jst'); ?>
+<?% include('includes/utility.jst'); ?>
+
+<?%
+$autoWanEnable= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_AutowanFeatureSupport");
+        $wanPort= getStr("Device.Ethernet.X_RDKCENTRAL-COM_WAN.Port");
+        $portNo= parseInt($wanPort)+1;
+        if(!($autoWanEnable=="true")){
+            die();
+        }
+$mapT ="";
+        $mapT = getStr("Device.DHCPv6.Client.1.X_RDKCENTRAL-COM_RcvOption.MapTransportMode");
+        //$mapT = "MAPT";
+        $jsMapEnable="false";
+        if($mapT=="MAPT"){
+                $jsMapEnable = "true";
+        }
+        $fistUSif = getFirstUpstreamIpInterface();
+        if($jsMapEnable == "true")
+                $WANIPv4 = getStr("Device.DHCPv6.Client.1.X_RDKCENTRAL-COM_RcvOption.MapIpv4Address");
+        else
+                $WANIPv4 = getStr($fistUSif+"IPv4Address.1.IPAddress");
+        $WANIPv6= getStr("Device.DeviceInfo.X_COMCAST-COM_WAN_IPv6");
+        $wan_enable="";
+        $wnStatus="";
+        if($autoWanEnable!="true"){
+                $wan_enable= getStr("Device.Ethernet.X_RDKCENTRAL-COM_WAN.Enabled");
+        $wan_status= getStr("Device.Ethernet.Interface."+$portNo+".Status");
+                $wnStatus= ($wan_enable=="true" && $wan_status=="Down") ? "true" : "false";
+        }
+        $autowan_status= getStr("Device.Ethernet.Interface."+$portNo+".Status");
+        $selectedOperationalMode = current_operationalMode();
+        $bridge_mode = getStr("Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanMode");
+        $currentOpMode = getStr("Device.X_RDKCENTRAL-COM_EthernetWAN.CurrentOperationalMode");
+        $autownStatus = (strtolower($currentOpMode)=="ethernet" && $autowan_status=="Down") ? "true" : "false";
+
+/* To prepare the data used for view */
+
+/* WAN IP configuration */
+$wanCurNatIP = null;				// to hold the current ip for nat
+$wanTrueStaticIpAddr = null;
+$wanTrueStaticIpMask = null;
+$natDisable = null;
+$natDhcp = null;
+$wanMode = getStr("Device.X_CISCO_COM_DeviceControl.WanAddressMode");
+$wanDHCPGwIp = getStr("Device.DHCPv4.Client.1.IPRouters");
+$wanTrueStaticIpEnabled = !strcasecmp('true', getStr('Device.X_CISCO_COM_TrueStaticIP.Enable'));
+/*if ($_DEBUG) {
+	$wanMode = 'DHCP';
+	$wanDHCPGwIp = '172.24.15.1';
+	$wanTrueStaticIpEnabled = false;
+}*/
+$wanDhcpIpAddr = getStr("Device.IP.Interface.1.IPv4Address.1.IPAddress");
+$wanDhcpSubnetMask = getStr("Device.IP.Interface.1.IPv4Address.1.SubnetMask");
+/*if ($_DEBUG) {
+	$wanDhcpIpAddr = '172.24.15.5';
+	$wanDhcpSubnetMask = '255.255.255.0';
+}*/
+if ($wanTrueStaticIpEnabled) {
+	$wanTrueStaticIpAddr = getStr('Device.X_CISCO_COM_TrueStaticIP.IPAddress');
+	$wanTrueStaticIpMask = getStr('Device.X_CISCO_COM_TrueStaticIP.SubnetMask');
+	//$wanTrueStaticIpGWIp = getStr('Device.X_CISCO_COM_TrueStaticIP.GatewayIPAddress');
+	$natDisable = getStr('Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanNaptEnable') !== 'true';
+	$natDhcp = getStr('Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanNaptOnDhcp') === 'true';
+	/*if ($_DEBUG) {
+		$wanTrueStaticIpAddr = '1.1.1.6';
+		$wanTrueStaticIpMask = '255.255.255.248';
+		$natDisable = false;
+		$natDhcp = true;
+	}*/
+	$wanMode = 'TrueStatic';			// change wan mode to static once TrueStaticIp no matter what set before
+	$wanCurNatIP = (!$natDisable && $natDhcp) ? $wanDhcpIpAddr : $wanTrueStaticIpAddr;
+}
+else {
+	$wanCurNatIP = $wanDhcpIpAddr;
+}
+
+$staticDnsEnabled = !strcasecmp('true', getStr("Device.X_CISCO_COM_DeviceControl.EnableStaticNameServer"));
+$nameServer1 = getStr("Device.X_CISCO_COM_DeviceControl.NameServer1");
+if(strcmp("0.0.0.0", $nameServer1 ) == 0) $nameServer1 = "";
+$nameServer2 = getStr("Device.X_CISCO_COM_DeviceControl.NameServer2");
+if(strcmp("0.0.0.0", $nameServer2 ) == 0) $nameServer2 = "";
+
+/* WAN additional subnet */
+$addiSubnetTable = fetchAdditionalSubnetTable();
+?>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    comcast.page.init("Gateway > Connection > WAN", "nav-wan");
+        $("label").addClass("label_wan");
+        $("#wan_switch").radioswitch({
+                id: "wan-switch",
+                radio_name: "wan_network",
+                id_on: "ethernet",
+                id_off: "docsis",
+                label_on:"Ethernet",
+                label_off:"Docsis",
+                title_on: "Ethernet Mode",
+                title_off: "Docsis Mode",
+                state: <?% echo( ($wan_enable === "true" ? "true" : "false")); ?> ? "on" : "off"
+         });
+         <?%
+                if ($bridge_mode == "bridge-static" ) {
+                        echo( '$("#wan_switch").children(".rs_radiolist").addClass("enabled_state");');
+                        echo( '$("#wan_switch").data("radioswitchstates", "true");');
+                        echo( '$("#autowan").prop("enabled", true);');
+                        echo( '$("#save").prop("enabled", true);');
+                }
+        ?>
+        $("#wan_switch").change(function()
+        {
+                var wan_network= $("#wan_switch").radioswitch("getState").on ? "true" : "false";
+                var jsConfig='{"wan_network": "' + wan_network + '"} ';
+                if ($(this).radioswitch("getState").on)
+                {
+                        jConfirm(("Please note that changing the configuration to Ethernet WAN requires connection of an Ethernet cable to a service provider gateway."),("WARNING:")
+                                        ,function(ret) {
+                                        if(ret) {
+                                                changeMode(jsConfig);
+                                        } //end of if ret
+                                        else {
+                                                $("#wan_switch").radioswitch("doSwitch", "on");
+                                        }
+                                });//end of jConfirm
+           }
+                    else{
+                       changeMode(jsConfig);
+                 }
+       });
+});
+function changeAutoWanMode(){
+	var optionNAame = $('#autowan').find(":selected").text();
+	var selectedOptionName = "<?% echo( strtolower($selectedOperationalMode) );?>";
+    	
+	if(optionNAame=="Ethernet"){
+		jConfirm(("Please note that changing the configuration to Ethernet WAN requires connection of an Ethernet cable to a service provider gateway."),("WARNING:")
+				,function(ret) {
+					if(ret) {
+						
+						saveConfig(optionNAame);
+						
+					} //end of if ret
+					else {
+						
+						$("#autowan").val(selectedOptionName);
+						
+					}
+				});//end of jConfirm
+	}else{
+		saveConfig(optionNAame);
+	}
+}
+function saveConfig(jsConfigVal){
+	var token = "<?% echo(  $_SESSION['Csrf_token'] );?>";
+	var jsConfig='{"wan_network": "' + jsConfigVal + '"} ';
+	 jProgress(("Waiting for backend to be fully executed, please be patient..."), 100);
+						$.ajax({
+							type: "POST",
+							url: "actionHandler/ajaxSet_WAN_mode.jst",
+							data: { configInfo: jsConfig,csrfp_token: token },
+							success: function() {   
+								setTimeout(function(){
+									jHide();
+									window.location.reload(true);
+								}, 60000);
+							},
+							error: function(){
+								jHide();
+								jAlert("Failure, please try again.");
+							}
+						});	
+}
+function changeMode(jsConfig){
+	var token = "<?% echo(  $_SESSION['Csrf_token'] );?>";
+	jProgress(("Waiting for backend to be fully executed, please be patient..."), 100);
+	$.ajax({
+		type: "POST",
+		url: "actionHandler/ajaxSet_WAN_mode.jst",
+		data: { configInfo: jsConfig,csrfp_token: token },
+		success: function() {   
+			setTimeout(function(){
+				jHide();
+				window.location.reload(true);
+			}, 60000);
+		},
+		error: function(){
+			jHide();
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+var o_wanCurNatIp = "<?% echo( $wanCurNatIP); ?>";
+var o_wanDhcpIp = "<?% echo( $wanDhcpIpAddr); ?>";
+var o_wanDhcpMask = "<?% echo( $wanDhcpSubnetMask); ?>";
+var o_wanMode = "<?% echo( $wanMode); ?>";
+var o_wanTrueStaticIpEnable = <?% echo( $wanTrueStaticIpEnabled ? 'true' : 'false'); ?>;
+var o_trueStaticIpInfo = {
+	ip: "<?% echo( isset($wanTrueStaticIpAddr) ? $wanTrueStaticIpAddr : ""); ?>",
+	mask: "<?% echo( isset($wanTrueStaticIpMask) ? $wanTrueStaticIpMask : ""); ?>",
+	gw: "<?% echo( isset($wanDHCPGwIp) ? $wanDHCPGwIp : ""); ?>", // use DHCP GW as reference
+	natDisable: <?% echo( (isset($natDisable) && $natDisable) ? 'true' : 'false'); ?>,
+	natDhcp: <?% echo( (isset($natDhcp) && $natDhcp) ? 'true' : 'false'); ?>
+};
+var o_staticDnsEnabled = <?% echo( $staticDnsEnabled ? 'true' : 'false'); ?>;
+var o_nameServer = [<?% echo( "\""+$nameServer1+"\""); ?>, <?% echo( "\""+$nameServer2+"\""); ?>];
+var token = "<?% echo(  $_SESSION['Csrf_token'] );?>";
+
+function onchangeWanMode(mode, preFill) {
+	if (mode === undefined) {
+		mode = $('#wan_ip_method').comboVal();
+	}
+	else {
+		$('#wan_ip_method').comboVal(mode);
+	}
+	if (mode == 'DHCP') {
+		$('#row_ip, #row_mask, #row_gw, #row_natdisable, #row_natdhcp').hide();
+		$('#row_dhcpctrl > span').show();
+		if (preFill) {
+			/* dhcp controls */
+			$('#release_wan').css({cursor: 'pointer'}).click(function(){
+				setWanDHCP("release");
+			}).children('img').attr('src', 'cmn/img/release_ip.gif');
+			$('#renew_wan').css({cursor: 'pointer'}).click(function(){
+				setWanDHCP("renew");
+			}).children('img').attr('src', 'cmn/img/renew_ip.gif');
+		}
+	}
+	else if (mode == 'TrueStatic') {
+		$('#row_ip, #row_mask, #row_gw, #row_natdisable, #row_natdhcp').show();
+		$('#row_dhcpctrl > span').hide();
+		$('#curNatIpInfo1').show();
+		$('#curNatIpInfo2, #curNatIpInfo3').hide();
+		if (preFill) {
+			$('#wan_ip').val(o_trueStaticIpInfo.ip);
+			$('#subnet_mask').val(o_trueStaticIpInfo.mask);
+			$('#gateway_ip').val(o_trueStaticIpInfo.gw);
+			$('#nat_disable').prop("checked", o_trueStaticIpInfo.natDisable);
+			$('#nat_dhcp').prop("checked", o_trueStaticIpInfo.natDhcp);
+			onclickNatDisable();
+		}
+	}
+	else {
+		jAlert("Invalid WAN IP Method: "+mode);
+		return;
+	}
+}
+
+function onchangeManualDns(enabled, preFill) {
+	if (enabled === undefined) {
+		enabled = $('#manual_dns_enable').prop("checked");
+	}
+	else {
+		$('#manual_dns_enable').prop("checked", enabled);
+	}
+	$('#dns_primary, #dns_secondary').prop("disabled", !enabled);
+	if (preFill) {
+		$('#dns_primary').val(o_nameServer[0]);
+		$('#dns_secondary').val(o_nameServer[1]);
+	}
+}
+
+function onenableSubnet(isEnabling) {
+	var $this = $(this);
+	var id = $this.closest('tr').attr('eid');
+	var postData = {};
+
+	postData.op = isEnabling ? 'enable' : 'disable';
+	postData.id = id;
+        postData.csrfp_token =token;
+
+	jProgress('This may take several seconds', 60);
+	$.ajax({
+		type: 'POST',
+		url: 'actionHandler/ajaxSet_WAN_additional_subnet.jst',
+		dataType: 'json',
+		data: postData,
+		success: function(data) {
+			jHide();
+			if (data.status != 'success') {
+				var str = "Failed, please try again later.";
+				if (data.msg) {
+					str += '\nMessage: ' + data.msg;
+				}
+				/* restore the previous state */
+				$this.prop("checked", !isEnabling);
+
+				jAlert(str);
+				return;
+			}
+			else {
+				window.location.reload(true);
+			}
+		},
+		error: function() {
+			jHide();
+			/* restore the previous state */
+			$this.prop("checked", !isEnabling);
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+
+function ondeleteSubnet() {
+	var $this = $(this);
+	var id = $this.closest('tr').attr('eid');
+	var postData = {};
+
+	postData.op = 'del';
+	postData.id = id;
+        postData.csrfp_token =token;
+
+	jProgress('This may take several seconds', 60);
+	$.ajax({
+		type: 'POST',
+		url: 'actionHandler/ajaxSet_WAN_additional_subnet.jst',
+		dataType: 'json',
+		data: postData,
+		success: function(data) {
+			jHide();
+			if (data.status != 'success') {
+				var str = "Failed, please try again later.";
+				if (data.msg) {
+					str += '\nMessage: ' + data.msg;
+				}
+				jAlert(str);
+				return;
+			}
+			else {
+				window.location.reload(true);
+			}
+		},
+		error: function() {
+			jHide();
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+
+function onclickNatDisable() {
+	var disabled = $('#nat_disable').prop("checked");
+	if (disabled) {
+		$('#nat_dhcp').attr({checked: false, disabled: true});
+	}
+	else {
+		$('#nat_dhcp').prop("disabled", false);
+	}
+}
+
+function isWanGWInValidRange(gwIp, rangeIp, rangeMask) {
+	var rangeIpBin = ip4StrToBin(rangeIp);
+	var rangeMaskBin = ip4StrToBin(rangeMask);
+	var gwIpBin = ip4StrToBin(gwIp);
+
+	if (rangeIpBin === null || rangeMaskBin === null || gwIpBin === null
+		|| !isIp4ValidInSubnet(gwIpBin, rangeIpBin, rangeMaskBin)) {
+		return false;
+	}
+	return true;
+}
+
+function onsave(event) {
+	event.stopPropagation();
+	event.preventDefault();
+
+	var wanStaticIP = $('#wan_ip').val();
+	var wanSubnetMask = $('#subnet_mask').val();
+	var nameServer1 = $('#dns_primary').val();
+	var nameServer2 = $('#dns_secondary').val();
+	var wanMode = $('#wan_ip_method').comboVal();
+	var staticDnsEnabled = $('#manual_dns_enable').is(':checked');
+	var natDisable = $('#nat_disable').is(':checked');
+	var natDhcp = $('#nat_dhcp').is(':checked:enabled');
+              
+	var msg = "";
+	pattern=/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+	if(wanMode != "DHCP") {
+		if(isPrivate_Addr(wanStaticIP)){
+                      msg+="The Ip address is within the private IP range.\n";
+        	}
+		/* validate manual IP address */
+		if(pattern.test(wanStaticIP) == false)
+			msg+="The IP Address is invalid.\n";
+
+		/* validate manual subnet mask */
+		pattern2=/^(((128|192|224|240|248|252|254)\.0\.0\.0)|(255\.(0|128|192|224|240|248|252|254)\.0\.0)|(255\.255\.(0|128|192|224|240|248|252|254)\.0)|(255\.255\.255\.(0|128|192|224|240|248|252|254)))$/i;
+		if(pattern2.test(wanSubnetMask) == false)
+			msg+="The Subnet Mask is invalid.\n";
+
+		/* validate ip range */
+		var ipBin = ip4StrToBin(wanStaticIP);
+		var maskBin = ip4StrToBin(wanSubnetMask);
+		if (!isIp4ValidInSubnet(ipBin, ipBin, maskBin)) {
+			msg += "The IP Address is not valid host IP.\n";
+		}
+	}
+
+	if(staticDnsEnabled) {
+		if(pattern.test(nameServer1) == false)
+			msg+="The Primary DNS is invalid.\n";
+		if(nameServer2 != "" && pattern.test(nameServer2) == false)
+			msg+="The Secondary DNS is invalid.\n";
+		if(msg == "") {
+			if(isPrivate_Addr(nameServer1)||isPrivate_Addr(nameServer2))
+				msg+="The Ip address is within the private IP range.\n";
+		}
+	}
+
+	if(msg != "") {
+		jAlert("Please fix the following problems:\n\n"+msg);
+		return;
+	}
+
+	var info;
+
+	if(wanMode == "DHCP") {
+		info = '{"wanMode": "'+wanMode+'", ';
+		if (staticDnsEnabled != o_staticDnsEnabled || staticDnsEnabled == true) {
+			info += '"staticDnsEnabled": "'+staticDnsEnabled+'", ' +
+				'"nameServer1": "'+nameServer1+'", '+
+				'"nameServer2": "'+nameServer2+'", ';
+		}
+		info += '"__ph": true}';
+
+		saveWAN(info, false);
+	}
+	else {
+		info = '{"wanMode": "'+wanMode+'", ';
+		if (staticDnsEnabled != o_staticDnsEnabled || staticDnsEnabled == true) {
+			info += '"staticDnsEnabled": "'+staticDnsEnabled+'", ' +
+				'"nameServer1": "'+nameServer1+'", '+
+				'"nameServer2": "'+nameServer2+'", ';
+		}
+		info += '"wanStaticIP": "'+wanStaticIP+'", '+
+			'"wanSubnetMask": "'+wanSubnetMask+'", '+
+			'"natDisable": "'+natDisable+'", '+
+			'"natDhcp": "'+natDhcp+'", ';
+		info += '"__ph": true}';
+
+		saveWAN(info, false);
+	}
+}
+
+function saveWAN(information, reboot){
+	var info = new Array("btn1", "Device");
+	jProgress('This may take several seconds', 90);
+	$.ajax({
+		type: 'POST',
+		url: "actionHandler/ajaxSet_WAN_configuration.jst",
+		dataType: 'json',
+		data: {wanInfo: information, csrfp_token: token},
+		success: function(data) {
+			jHide();
+			if (data.status != 'success') {
+				var str = "Failed, please try again later.";
+				if (data.msg) {
+					str += '\nMessage: ' + data.msg;
+				}
+				jAlert(str);
+				return;
+			}
+			if(reboot) {
+				jConfirm("You must restart your gateway for the configuration changes made to WAN IP to take effect.\n Click OK to restart now or Cancel if you plan to restart manually later."
+				, "Are You Sure?"
+				, function(ret) {
+					if(ret) {
+						setResetInfo(info);
+						setTimeout(function(){
+							location.href = "home_loggedout.jst";
+						}, 3000);
+					}
+					else
+						location.reload();
+				});
+			}
+			else {
+				jProgress('Please wait for refreshing', 60);
+				window.location.reload(true);
+			}
+		},
+		error: function() {
+			jHide();
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+
+function setResetInfo(info) {
+	var jsonInfo = '["' + info[0] + '","' + info[1] + '"]';
+
+	jProgress('This may take several seconds', 60);
+	$.ajax({
+		type: 'POST',
+		url: "actionHandler/ajaxSet_Reset_Restore.jst",
+		dataType: 'json',
+		data: {resetInfo: jsonInfo, csrfp_token: token},
+		success: function(){
+			jHide();
+		},
+		error: function(){
+			jHide();
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+
+function setWanDHCP(mode) {
+	var information;
+	if(mode == "release") information = '{"release":"true"}';
+	else information = '{"renew":"true"}';
+
+	jProgress('This may take several seconds', 60);
+	$.ajax({
+		type: "POST",
+		url: "actionHandler/ajaxSet_WAN_configuration.jst",
+		dataType: 'json',
+		data: {wanInfo: information,csrfp_token: token},
+		success: function(data) {
+			jHide();
+			if (data.status != 'success') {
+				var str = "Failed, please try again later.";
+				if (data.msg) {
+					str += '\nMessage: ' + data.msg;
+				}
+				jAlert(str);
+				return;
+			}
+			if (mode == 'release') {
+				$('#curNatIpInfo1, #curNatIpInfo3').hide();
+				$('#curNatIpInfo2').show();
+			}
+			else {
+				$('#curNatIpInfo1, #curNatIpInfo2').hide();
+				$('#curNatIpInfo3').text('Your new ip address is '+data.curNatIp).show();
+			}
+		},
+		error: function() {
+			jHide();
+			jAlert("Failure, please try again.");
+		}
+	});
+}
+
+$(document).ready(function() {
+    comcast.page.init("Gateway > Connection > WAN", "nav-wan");
+
+	/* information part */
+	$('#curNatIpInfo1').text(o_wanCurNatIp);
+
+	/* init wan mode parameters */
+	onchangeWanMode(o_wanMode, true);
+	$('#wan_ip_method').change(function(){
+		onchangeWanMode();
+	});
+
+	/* manual dns */
+	onchangeManualDns(o_staticDnsEnabled, true);
+	$('#manual_dns_enable').click(function(){
+		onchangeManualDns();
+	});
+
+	/* enable subnet checkbox */
+	$('input[name=enableSubnet]').off('click').click(function(){
+		var that = this;
+		var isEnabling = $(this).prop("checked");
+
+		/* prevent this if true static ip is not enabled */
+		if (!o_wanTrueStaticIpEnable) {
+			jAlert("It should be under \"True Static IP\" mode before you can enable additional subnet.");
+			$(that).prop("checked", !isEnabling);
+			return;
+		}
+
+		jConfirm('Are you sure you want to '+(isEnabling ? 'enable' : 'disable')+' this additional subnet?',
+			"Are You Sure?", function(ret) {
+			if(ret) {
+				onenableSubnet.call(that, isEnabling);
+			}
+			else {
+				$(that).prop("checked", !isEnabling);
+			}
+		});
+	});
+
+	/* delete subnet button */
+	$('td.delete > a.btn').off('click').click(function(e){
+		e.stopPropagation();
+		e.preventDefault();
+		var message = ($(this).attr("title").length > 0) ?
+			"Are you sure you want to " + $(this).attr("title") + "?" : "Are you sure?";
+		var that = this;
+		jConfirm(message, "Are You Sure?", function(ret) {
+			if(ret) {
+				ondeleteSubnet.call(that);
+			}    
+		});
+	});
+
+	/* edit and add button when not true static ip mode */
+	if (!o_wanTrueStaticIpEnable) {
+		$("#add-service, td.edit > a.btn").off("click").click(function(e){
+			e.stopPropagation();
+			e.preventDefault();
+			/* prevent this if true static ip is not enabled */
+			jAlert("It should be under \"True Static IP\" mode before you can add/edit additional subnet.");
+			return false;
+		});
+	}
+
+	$('#nat_disable').click(onclickNatDisable);
+
+	/* submit */
+	$('#submit').click(onsave);
+});
+
+</script>
+
+<div id="content">
+	<h1>Gateway > Connection > WAN</h1>
+	<?%
+        if ("mso" == $_SESSION["loginuser"]) {
+        ?>
+    <div id="educational-tip">
+        <p class="tip"> Add a rule for adding WAN IP.</p>
+        <p class="hidden">WAN IP Method: A Public IP for WAN interface is automatically assigned using DHCP Protocol or Statically assigned by Comcast.</p>
+    </div>
+
+	<form method="post" id="pageForm" action="wan.jst">
+	<div class="module forms">
+		<h2>WAN IP Setup</h2>
+		<div class="form-row ">
+        <p id="curNatIp"><strong>Current WAN-NAT IP Address:</strong>&nbsp;<span id='curNatIpInfo1'></span><span id='curNatIpInfo2' class="wan_address"> Your IP has been released.Click on "Renew IP" to obtain new ip.</span><span id='curNatIpInfo3' class="wan_address"></span></p>
+		</div>	
+			<div class="form-row odd" id="row_ipmethod">
+				<label for="wan_ip_method">WAN IP Method:</label>
+				<select id="wan_ip_method" name="wan_ip_method" class="input-big">
+                    <option value="DHCP">WAN DHCP</option>
+                    <option value="TrueStatic">True Static IP</option>
+                </select>
+			</div>
+
+			<div class="form-row " id="row_ip">
+			  <span class="label-text"><label for="wan_ip">IP Address</label></span>
+              <span class="input"><input type="text" id="wan_ip" name="wan_ip" class="input-big" value=""/></span>
+			</div>
+
+			<div class="form-row " id="row_mask">
+			  <span class="label-text"><label for="subnet_mask">Subnet Mask</label></span>
+			  <span class="input"><input type="text" id="subnet_mask" name="subnet_mask" class="input-big" value=""/></span>
+			</div>
+
+			<div class="form-row" id="row_gw">
+			  <span class="label-text"><label for="gateway_ip">Gateway IP</label></span>
+			  <span class="input"><input type="text" id="gateway_ip" name="gateway_ip" class="input-big" value="" disabled/></span>
+			</div>			
+
+            <div class="form-btn " id="row_dhcpctrl">
+                    <span id="release"><a id="release_wan" class="ip_style" href="javascript:void(0);" rel="release_ip"><img src="cmn/img/release_ip_off.gif" alt="Release IP" name="release_ip" /></a></span>
+					<span id="renew"><a id="renew_wan" class="ip_style" href="javascript:void(0);" rel="renew_ip"><img src="cmn/img/renew_ip_off.gif" alt="Renew IP" name="renew_ip" /></a></span>
+			</div>
+
+				  
+		  <div class="form-row odd">
+		  <label for="manual_dns_enable" class="acs-hide">Assign DNS Manually</label>
+          <input type="checkbox" id="manual_dns_enable" name="manual_dns_enable" /><b>Assign DNS Manually</b>
+		  </div>
+		  <div class="form-row ">
+			  <span class="label-text"><label for="dns_primary">Primary DNS:</label></span>
+              <span class="input"><input type="text" id="dns_primary" name="dns_primary" class="input-mid" disabled="disabled" value=""/></span>
+			</div>
+			<div class="form-row">
+			  <span class="label-text"><label for="dns_secondary">Secondary DNS:</label></span>
+			  <span class="input"><input type="text" id="dns_secondary" name="dns_secondary" class="input-mid" disabled="disabled" value=""/></span>
+		  </div>
+		  <div class="form-row odd" id="row_natdisable">
+		  <label for="nat_disable" class="acs-hide">Disable NAT</label>
+			  <input type="checkbox" id="nat_disable" name="nat_disable" /><b>Disable NAT</b>
+		  </div>
+		  <div class="form-row" id="row_natdhcp">
+		  <label for="nat_dhcp" class="acs-hide">NAT on DHCP IP</label>
+			  <input type="checkbox" id="nat_dhcp" name="nat_dhcp" /><b>NAT on DHCP IP</b>
+		  </div>
+
+		<div class="form-btn odd">
+			<input id="submit" type="button" value="save" class="btn submit"/>
+			<input type="button" id="btn-cancel" value="Cancel" class="btn alt reset" onclick="location.reload()"/>
+		</div>
+		
+			</div> <!-- end .module -->
+	</form>
+
+	<div id=forwarding-items>	
+	<form method="post" id="pageForm2" action="wan.jst"> 
+	<div class="module data">
+		<h2>Additional Public Subnets</h2>
+			<p class="button"><a href="wan_edit.jst?t=add" class="btn" id="add-service">+ ADD New</a></p>
+
+		<table class="data" summary="This table lists all additional public subnets">
+		    <tr>
+		        <th id="hdr_number">#</th>
+				<th id="hdr_publicip">Public IP Address</th>
+				<th id="hdr_subnet">Subnet Mask</th>
+				<th id="hdr_enable">Enable</th>
+				<th id="hdr_controls" colspan="2">&nbsp;</th>
+		    </tr>
+<?%
+/* output the additional subnet table entries */
+if (isset($addiSubnetTable)) {
+	$eIdx = 0;
+	$htmlStr = '';
+	for(var $keytmp in $addiSubnetTable) { $entry=$addiSubnetTable[$keytmp];/*p2j-foreach*/
+		$htmlStr += '<tr eid="'+$entry['id']+'" '+(($eIdx%2 != 0) ? 'class="odd"' : "")+'>';
+		$htmlStr += '<td headers="hdr_number">'+($eIdx+1)+'</td>';
+		$htmlStr += '<td headers="hdr_publicip">'+$entry['ip']+'</td>';
+		$htmlStr += '<td headers="hdr_subnet">'+$entry['mask']+'</td>';
+		$htmlStr += '<td headers="hdr_enable"><label for="enableSubnet'+$eIdx+'" class="acs-hide"></label>'+
+			'<input type="checkbox" id="enableSubnet'+$eIdx+'" name="enableSubnet" '+($entry['enable'] ? 'checked' : '')+' /></td>';
+		$htmlStr += '<td headers="hdr_controls" class="edit"><a href="wan_edit.jst?id='+$entry['id']+'" class="btn">Edit</a></td>';
+		$htmlStr += '<td headers="hdr_controls" class="delete"><a href="javascript:void(0)" class="btn" title="delete Public IP Address '+$entry['ip']+'?">x</a></td>';
+		$htmlStr += '</tr>';
+		$eIdx++;
+	}
+	if (count($addiSubnetTable) == 0) {
+		echo( '<tr><td colspan="6">No entries!</td></tr>');
+	}
+	else {
+		echo( $htmlStr);
+	}
+}
+else {
+	echo( '<tr><td colspan="6">Error occurs when fetching entries!</td></tr>');
+}
+?>
+		<tfoot>
+			<tr class="acs-hide">
+				<td headers="hdr_number">null</td>
+				<td headers="hdr_publicip">null</td>
+				<td headers="hdr_subnet">null</td>
+				<td headers="hdr_enable">null</td>
+				<td headers="hdr_controls">null</td>
+				<td headers="hdr_controls">null</td>
+			</tr>
+		</tfoot>
+		</table>
+		</div> 
+	  	</form>
+		</div> <!-- end .module -->
+		<?%
+                }
+                ?>
+                
+          <form id="pageForm3">
+	<fieldset>
+    <legend class="acs-hide" id="wannet">WAN Network</legend>
+<div class="module forms enable">
+        <h2>WAN Network</h2>
+  			        <?%
+        	if (("cusadmin" == $_SESSION["loginuser"]) || ("mso" == $_SESSION["loginuser"])){
+        		if($autoWanEnable=="true"){
+        ?>
+        		<div class="select-row">
+				<label id="wannet">WAN Network:</label>
+				<span id=""><select name="autowan" id="autowan">
+				<?%
+				if(strtolower($selectedOperationalMode)=="ethernet"){
+					echo( "<option value='auto' >Auto</option>\
+					<option value='docsis'>DOCSIS</option>\
+					<option value='ethernet' selected>Ethernet</option>");
+				}else if(strtolower($selectedOperationalMode)=="docsis"){
+					echo( "<option value='auto' >Auto</option>\
+					<option value='docsis' selected>DOCSIS</option>\
+					<option value='ethernet'>Ethernet</option>");
+				}else{
+					echo( "<option value='auto' selected>Auto</option>\
+					<option value='docsis' >DOCSIS</option>\
+					<option value='ethernet' >Ethernet</option>");
+				}
+				?>
+			
+			</select></span>				
+			</div>
+        <?%
+        		}else{
+        ?>
+			<div class="select-row">
+				<label id="wannet">WAN Network:</label>
+				<span id="wan_switch"></span>			
+			</div>
+		<?%
+			} 
+					if($wnStatus=="true" || $autownStatus=="true"){
+						
+				?>
+					<div class="select-row" id="noEth"><p class="error"><span id="wanmess1">No Ethernet WAN Connection is detected on Port </span><?% echo($portNo + ".");?></p></div>
+				<?%
+				}
+		}
+		else{
+		?>
+		<div class="form-row">
+		<span class="readonlyLabel customLabel" id="wannet">WAN Network:</span>
+		<?%
+		if($autoWanEnable=="true"){
+			?>
+			<?% 
+			if(strtolower($selectedOperationalMode)=="ethernet"){
+				echo('<span class="value" id="actethwan">Active Ethernet WAN');
+			}else if(strtolower($selectedOperationalMode)=="docsis"){
+				echo('<span class="value" id="actdocwan">Active Docsis WAN');
+			}else{
+				echo('<span class="value" id="actautwan">Active Auto WAN');
+			}
+			?></span>
+		<?%
+		}else{
+		?>
+			<span class="value"><?% 
+			if($wan_enable=="true"){
+				echo('<span class="value" id="actethwan">Active Ethernet WAN');
+			}else{
+				echo('<span class="value" id="actdocwan">Active Docsis WAN');
+			}
+			?></span>
+		<?%
+		}
+		?>
+		</div>
+		<?%
+		}
+		?>
+		 <?%
+		if($autoWanEnable=="true"){
+			?>
+        <div class="form-row odd">
+		<span class="readonlyLabel customLabel">Current Operational Mode:</span>
+		<span class="value"><?% echo( $currentOpMode);?></span>
+	</div>
+		<div class="form-row ">
+		<?%
+		}else{
+			echo( '<div class="form-row odd">');
+		}
+		?>
+		
+		<span class="readonlyLabel customLabel" id="wanip4">WAN IP Address (IPv4):</span>
+		<span class="value"><?% echo( $WANIPv4);?></span>
+	</div>	
+	 <?%
+		if($autoWanEnable=="true"){
+			echo( '<div class="form-row odd">');
+		}else{
+			echo( '<div class="form-row ">');
+		}
+			?>
+		<span class="readonlyLabel customLabel"  id="wanip6">WAN IP Address (IPv6):</span> <span class="value">
+		<?%
+			echo( $WANIPv6);
+		?>
+		</span>
+	</div>	
+		<?%
+		if ((("cusadmin" == $_SESSION["loginuser"]) || ("mso" == $_SESSION["loginuser"])) && ($autoWanEnable=="true")){ 
+		?>
+		<div class="form-row ">
+		<div class="form-btn">
+		<label for="save" class="acs-hide"></label>
+			<input type="button" id="save" value="Save" class="btn" onclick="changeAutoWanMode();"/>
+		</div>
+	</div>
+	<?%
+	}
+	?>	
+ 			
+			
+	</div> <!-- end .module -->
+</fieldset>
+</form>
+
+	</div><!-- end #content -->
+
+<?% include('includes/footer.jst'); ?>

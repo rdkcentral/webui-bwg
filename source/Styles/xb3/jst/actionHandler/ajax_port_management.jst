@@ -1,0 +1,323 @@
+<?%
+/*
+ If not stated otherwise in this file or this component's Licenses.txt file the
+ following copyright and licenses apply:
+
+ Copyright 2018 RDK Management
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+/**********************************************************************
+   Copyright [2014] [Cisco Systems, Inc.]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+**********************************************************************/
+?>
+<?% include('includes/utility.jst') ?>
+<?% include('includes/actionHandlerUtility.jst') ?>
+<?% include('includes/jwt.jst'); ?>
+<?%
+session_start();
+if (!isset($_SESSION["loginuser"])) {
+        echo( '<script type="text/javascript">alert("Please Login First!"); location.href="index.jst";</script>');
+        exit(0);
+}
+// require "../includes/auth.jst";
+/**
+ * ajax_port_management.jst
+ *
+ * Action handler via AJAX for configuration of Port Management.
+ * This includes adding, editing, deleting, enabling/disabling rule entry and
+ * change the rule type.
+ *
+ * Author:      Nobel Huang
+ * Date:        Oct 9, 2013
+ */
+
+
+// FIXME: session check!!!
+
+$opType = $_POST['op'];
+$r_id = $_POST['id'];
+$r_enable = $_POST['enable'];
+$r_appName = $_POST['appName'];
+$r_protocol = $_POST['protocol'];
+$r_ipStart = $_POST['ipStart'];
+$r_ipEnd = $_POST['ipEnd'];
+$r_portStart = $_POST['portStart'];
+$r_portEnd = $_POST['portEnd'];
+$r_ruleType = $_POST['type'];
+$r_isDisabling = $_POST['isDisabling'];
+$wanTrueStaticIpAddr = getStr('Device.X_CISCO_COM_TrueStaticIP.IPAddress');
+$wanTrueStaticIpMask = getStr('Device.X_CISCO_COM_TrueStaticIP.SubnetMask');
+$addiSubnetTable = fetchAdditionalSubnetTable();
+var addiSubnets =  [];
+var pattern = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/;
+var al_pattern = /[a-zA-Z]/g;
+function ValidIpRange($r_ipStart,$r_ipEnd){
+                var ipStartBin = ip4StrToBin($r_ipStart);
+                var ipEndBin = ip4StrToBin($r_ipEnd);
+                var ipStartMaskBin = 0;
+                /* check start ip */
+                var isInTSIRange = isIp4ValidInSubnet(ipStartBin, ip4StrToBin($wanTrueStaticIpAddr), ip4StrToBin($wanTrueStaticIpMask));
+                if (isInTSIRange) ipStartMaskBin = ip4StrToBin($wanTrueStaticIpMask);
+
+                var isInAddiSubnetRange = false;
+                for (var i=0; !isInTSIRange && i<addiSubnets.length; ++i) {
+                var subnet = addiSubnets[i];
+                if (isIp4ValidInSubnet(ipStartBin, ip4StrToBin(subnet.ip), ip4StrToBin(subnet.mask))) {
+                        isInAddiSubnetRange = true;
+                        ipStartMaskBin = ip4StrToBin(subnet.mask);
+                        break;
+                   }
+                }
+                if (!isInTSIRange && !isInAddiSubnetRange) {
+                       throw "Start IP is in range of neither True Static IP subnet nor Additional Public Subnets.";
+                }
+                if (ipStartMaskBin && !isIp4ValidInSubnet(ipEndBin, ipStartBin, ipStartMaskBin)) {
+                       throw "End IP is not in the same subnet with Start IP";
+                }
+         }
+try {
+        if (!in_array($opType, ['add', 'edit', 'del', 'enable', 'disable', 'disableAllPm', 'changeType', 'refreshConnDev']/*p2j-array*/, true)
+                || (($opType === 'add' || $opType === 'edit') && (!isset($r_enable) || empty($r_appName) || empty($r_protocol) || empty($r_ipStart) || empty($r_ipEnd) || empty($r_portStart) || empty($r_portEnd)))
+                || ($opType === 'edit' && !isset($r_id))
+                || ($opType === 'del' && !isset($r_id))
+                || (($opType === 'enable' || $opType === 'disable') && !isset($r_id))
+                || ($opType === 'disableAllPm' && !isset($r_isDisabling))
+                || ($opType === 'changeType' && !isset($r_ruleType))) {
+                throw 'Parameters are incompleted';
+        }
+
+        $baseObjName = "Device.X_CISCO_COM_TrueStaticIP.PortManagement.";
+        $rootObjName = "Device.X_CISCO_COM_TrueStaticIP.PortManagement.Rule.";
+
+        $response = {}/*p2j-array*/;
+
+        /*
+        if ($_SESSION['_DEBUG']) {
+                header("Content-Type: application/json");
+                echo json_encode(array('status'=>'success'));
+                exit(0);
+        }
+         */
+
+        if ($opType === 'edit') {
+                /* editing a rule */
+                if(!($r_portStart >= 1 &&  $r_portStart <= 65535 && $r_portEnd >= 1 && $r_portEnd <=65535)){
+                       throw "Port Number is not in the valid range";
+                }
+                if(parseInt($r_portEnd) < parseInt($r_portStart)){
+                       throw "Please enter a value greater than or equal to Start port";
+                }
+                $r_ipStart = $r_ipStart.replace(/(^|\.)0+(\d)/g, '$1$2');
+                $r_ipEnd = $r_ipEnd.replace(/(^|\.)0+(\d)/g, '$1$2');
+                if(al_pattern.test($r_ipStart)){
+                       throw "ip_start is not valid";
+                }
+                $ip_s = $r_ipStart.split(".");
+                if(!(($ip_s[0] >=1 && $ip_s[0] <=255 && $ip_s[0].length <=3) && ($ip_s[1] >=1 && $ip_s[1] <=255 && $ip_s[1].length <=3) && ($ip_s[2] >=1 && $ip_s[2] <=255 && $ip_s[2].length <=3) && ($ip_s[3] >=1 && $ip_s[3] <=255 && $ip_s[3].length <=3))) {
+                       throw "ip_start is not valid";
+                }                
+                if(al_pattern.test($r_ipEnd)){
+                       throw "ip_end is not valid";
+                }
+                $ip_e = $r_ipEnd.split(".");
+                if(!(($ip_e[0] >=1 && $ip_e[0] <=255 && $ip_e[0].length <=3) && ($ip_e[1] >=1 && $ip_e[1] <=255 && $ip_e[1].length <=3) && ($ip_e[2] >=1 && $ip_e[2] <=255 && $ip_e[2].length <=3) && ($ip_e[3] >=1 && $ip_e[3] <=255 && $ip_e[3].length <=3))) {
+                       throw "ip_end is not valid";
+                }
+                if(parseInt($r_ipEnd.replace(/\./g, '')) < parseInt($r_ipStart.replace(/\./g, ''))){
+                       throw "Please enter a value greater than or equal to Start IP address";
+                }
+                $r_appName = $r_appName.trim();
+                if(pattern.test($r_appName) === true) {
+                        throw "Failure, Wrong Application name";                        
+                }
+                if(parseInt($wanTrueStaticIpAddr.replace(/\./g, '')) >= parseInt($r_ipStart.replace(/\./g, '')) && parseInt($wanTrueStaticIpAddr.replace(/\./g, '')) <= parseInt($r_ipEnd.replace(/\./g, ''))){
+                       throw " WAN True Static IP should not be included in the range.";
+                }
+                ValidIpRange($r_ipStart,$r_ipEnd);
+                $paramArray =
+                        [
+                                [$rootObjName+$r_id+".Name", "string", $r_appName],
+                                [$rootObjName+$r_id+".Protocol", "string", $r_protocol],
+                                [$rootObjName+$r_id+".IPRangeMin", "string", $r_ipStart],
+                                [$rootObjName+$r_id+".IPRangeMax", "string", $r_ipEnd],
+                                [$rootObjName+$r_id+".PortRangeMin", "uint", $r_portStart],
+                                [$rootObjName+$r_id+".PortRangeMax", "uint", $r_portEnd],
+                                [$rootObjName+$r_id+".Enable", "bool", $r_enable]
+                        ];
+                $retStatus = DmExtSetStrsWithRootObj($rootObjName, true, $paramArray);
+                LogStr(" : webui_event:PortManagement:rule_edited");
+                if ($retStatus !== 0) {
+                        throw "Failed to set data to backend data model. ErrCode $retStatus";
+                }
+        }
+        else if ($opType === 'add'){
+                if(!($r_portStart >= 1 &&  $r_portStart <= 65535 && $r_portEnd >= 1 && $r_portEnd <=65535)){
+                       throw "Port Number is not in the valid range";
+                }
+                if(parseInt($r_portEnd) < parseInt($r_portStart)){
+                       throw "Please enter a value greater than or equal to Start port";
+                }
+                $r_ipStart = $r_ipStart.replace(/(^|\.)0+(\d)/g, '$1$2');
+                $r_ipEnd = $r_ipEnd.replace(/(^|\.)0+(\d)/g, '$1$2');
+                
+                if(al_pattern.test($r_ipStart)){
+                       throw "ip_start is not valid";
+                }
+                $ip_s = $r_ipStart.split(".");
+                if(!(($ip_s[0] >=1 && $ip_s[0] <=255 && $ip_s[0].length <=3) && ($ip_s[1] >=1 && $ip_s[1] <=255 && $ip_s[1].length <=3) && ($ip_s[2] >=1 && $ip_s[2] <=255 && $ip_s[2].length <=3) && ($ip_s[3] >=1 && $ip_s[3] <=255 && $ip_s[3].length <=3))) {
+                       throw "ip_start is not valid";
+                }                
+                if(al_pattern.test($r_ipEnd)){
+                       throw "ip_end is not valid";
+                }
+                $ip_e = $r_ipEnd.split(".");
+                if(!(($ip_e[0] >=1 && $ip_e[0] <=255 && $ip_e[0].length <=3) && ($ip_e[1] >=1 && $ip_e[1] <=255 && $ip_e[1].length <=3) && ($ip_e[2] >=1 && $ip_e[2] <=255 && $ip_e[2].length <=3) && ($ip_e[3] >=1 && $ip_e[3] <=255 && $ip_e[3].length <=3))) {
+                       throw "ip_end is not valid";
+                }
+                if(parseInt($r_ipEnd.replace(/\./g, '')) < parseInt($r_ipStart.replace(/\./g, ''))){
+                       throw "Please enter a value greater than or equal to Start IP address";
+                }
+                $r_appName = $r_appName.trim();
+                if(pattern.test($r_appName) === true) {
+                        throw "Failure, Wrong Application name";                        
+                }
+                if(parseInt($wanTrueStaticIpAddr.replace(/\./g, '')) >= parseInt($r_ipStart.replace(/\./g, '')) && parseInt($wanTrueStaticIpAddr.replace(/\./g, '')) <= parseInt($r_ipEnd.replace(/\./g, ''))){
+                       throw " WAN True Static IP should not be included in the range.";
+                }
+                ValidIpRange($r_ipStart,$r_ipEnd);
+                /* try to add an entry */
+                $addId = addTblObj($rootObjName);
+                //$addId = 3;
+                if ($addId == 0) {
+                        throw "Failed to add port management rule entry";
+                }
+                $idArr = DmExtGetInstanceIds($rootObjName);
+                //$idArr = array(0,"1","2","3");
+                if ($idArr[0] !== 0 || count($idArr) <= 1) {
+                        throw "Failed to add port management rule entry";
+                }
+                $idArr.shift();
+                if (!in_array(String($addId), $idArr)) {
+                        throw "Failed to add port management rule entry";
+                }
+                $paramArray =
+                        [
+                                [$rootObjName+$addId+".Name", "string", $r_appName],
+                                [$rootObjName+$addId+".Protocol", "string", $r_protocol],
+                                [$rootObjName+$addId+".IPRangeMin", "string", $r_ipStart],
+                                [$rootObjName+$addId+".IPRangeMax", "string", $r_ipEnd],
+                                [$rootObjName+$addId+".PortRangeMin", "uint", $r_portStart],
+                                [$rootObjName+$addId+".PortRangeMax", "uint", $r_portEnd],
+                                [$rootObjName+$addId+".Enable", "bool", $r_enable]
+                        ];
+                $retStatus = DmExtSetStrsWithRootObj($rootObjName, true, $paramArray);
+                LogStr(" : webui_event:PortManagement:rule_added");
+                if ($retStatus !== 0) {
+                        throw "Failed to set data to backend data model. ErrCode $retStatus";
+                }
+        }
+        else if ($opType === 'del') {
+                /* delete a rule */
+                $ret = delTblObj($rootObjName+$r_id+".");
+                LogStr(" : webui_event:PortManagement:rule_deleted");
+                if ($ret !== 0) {
+                        throw "Failed to delete port management rule entry. ErrCode $ret";
+                }
+        }
+        else if ($opType === 'enable') {
+                $ret = setStr($rootObjName+$r_id+".Enable", 'true', true);
+                if ($ret !== true) {
+                        throw 'Failed to enable this port management rule.';
+                }
+        }
+        else if ($opType === 'disable') {
+                $ret = setStr($rootObjName+$r_id+".Enable", 'false', true);
+                if ($ret !== true) {
+                        throw 'Failed to disable this port management rule.';
+                }
+        }
+        else if ($opType === 'disableAllPm') {
+                $ret = setStr($baseObjName+"Enable", ($r_isDisabling === 'true' ? 'false' : 'true'), true);
+                if($r_isDisabling === 'true') {
+                    LogStr(" : webui_event:PortManagement_disabled");
+                } else {
+                    LogStr(" : webui_event:PortManagement_enabled");
+                }
+                if ($ret !== true) {
+                        throw 'Failed to '+($r_isDisabling === 'true' ? 'disable' : 'enable')+' port management.';
+                }
+        }
+        else if ($opType === 'changeType') {
+                $ret = setStr($baseObjName+"RuleType", $r_ruleType, true);
+                if ($ret !== true) {
+                        throw 'Failed to change port management rule type.';
+                }
+        }
+        else if ($opType === 'refreshConnDev') {
+                /* prepare connected devices */
+                $rootObjName    = "Device.Hosts.Host.";
+                $paramNameArray = ["Device.Hosts.Host."]/*p2j-array*/;
+                $mapping_array  = ["HostName", "IPAddress", "IPv6Addr", "PhysAddress", "Layer1Interface", "Layer3Interface", "Active"]/*p2j-array*/;
+                $connDevArray = getParaValues($rootObjName, $paramNameArray, $mapping_array);
+                /*if ($_SESSION['_DEBUG']) {
+                        $connDevArray = [
+                                ['HostName':'Computer1', 'IPAddress':'10.1.10.67', 'IPv6Addr':'::', 'X_CISCO_COM_TrueStaticIPClient':'false',
+                                          'PhysAddress':'11:11:11:11:11:11', 'Layer1Interface':'Ethernet', 'Layer3Interface':'brlan0', 'Active':'true'],
+                                ['HostName':'Computer2', 'IPAddress':'10.1.10.68', 'IPv6Addr':'::', 'X_CISCO_COM_TrueStaticIPClient':'false',
+                                          'PhysAddress':'22:22:22:22:22:22', 'Layer1Interface':'Ethernet', 'Layer3Interface':'brlan0', 'Active':'true'],
+                                ['HostName':'Computer3', 'IPAddress':'6.6.6.10', 'IPv6Addr':'::', 'X_CISCO_COM_TrueStaticIPClient':'true',
+                                          'PhysAddress':'33:33:33:33:33:33', 'Layer1Interface':'Ethernet', 'Layer3Interface':'brlan0', 'Active':'true'],
+                                ['HostName':'Computer4', 'IPAddress':'6.6.6.15', 'IPv6Addr':'::', 'X_CISCO_COM_TrueStaticIPClient':'true',
+                                          'PhysAddress':'44:44:44:44:44:44', 'Layer1Interface':'Device.WiFi.SSID.1.', 'Layer3Interface':'ath0', 'Active':'false'],
+                                ['HostName':'Computer5', 'IPAddress':'6.6.6.16', 'IPv6Addr':'::', 'X_CISCO_COM_TrueStaticIPClient':'true',
+                                          'PhysAddress':'55:55:55:55:55:55', 'Layer1Interface':'Device.WiFi.SSID.2.', 'Layer3Interface':'ath0', 'Active':'true']
+                        );
+                }*/
+                /* prune those hosts not belonging to TSI, and convert values */
+                for ($i = count($connDevArray) - 1; $i >= 0; --$i) {
+                        if ($connDevArray[$i]['Active'] !== 'true') {
+                                $connDevArray.splice($i, 1);
+                        }
+                        else {
+                                $tempType = ProcessLay1Interface($connDevArray[$i]["Layer1Interface"]);
+                                $connDevArray[$i]["Layer1Interface"] = $tempType["connectionType"];
+                        }
+                }
+                $response.connDevArray = $connDevArray;
+        }
+
+        $response = {"status" : "success", "ipstart" : $r_ipStart, "ipend"  : $r_ipEnd}/*p2j-array*/;
+        header("Content-Type: application/json");
+        echo( json_encode($response));
+}
+catch ($err) {
+        $response = {"status" : "Failed", "msg" : $err}/*p2j-array*/;
+        header("Content-Type: application/json");
+        echo( json_encode($response));
+}
+
+?>
+

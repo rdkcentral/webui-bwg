@@ -1,0 +1,192 @@
+<?%
+/*
+ If not stated otherwise in this file or this component's Licenses.txt file the
+ following copyright and licenses apply:
+
+ Copyright 2018 RDK Management
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+?>
+<?% include('includes/utility.jst'); ?>
+<?% include('includes/actionHandlerUtility.jst') ?>
+<?%
+session_start();
+if (!isset($_SESSION["loginuser"])) {
+        echo( '<script type="text/javascript">alert("Please Login First!"); location.href="../index.jst";</script>');
+        exit(0);
+}
+
+var $maxtime;
+var $mintime;
+$mode=$_GET['mode'];
+$timef=$_GET['timef'];
+$timef = str_replace("+"," ",str_replace("+"," ",$timef));
+$timef=rawurldecode($timef);
+switch($timef){                 //      [$mintime, $maxtime)
+        case "Today":
+                $maxtime=strtotime("now");
+                $mintime=strtotime("today");
+        break;
+        case "Yesterday":
+                $maxtime=strtotime("today");
+                $mintime=strtotime("yesterday");
+        break;
+        case "Last week":
+                $maxtime=strtotime("now");
+                $mintime=strtotime("last Monday");
+        break;
+        case "Last month":
+                $maxtime=strtotime("now");
+                $mintime=strtotime("last month");
+        break;
+        case "Last 90 days":
+                $maxtime=strtotime("now");
+                $mintime=strtotime("-90 days");
+        break;
+        default:
+                die('Not allowed!');
+}
+$mintime/=1000;
+$maxtime/=1000;
+$pos = 50;              //global file pointer where to read the value in a line
+
+if ($mode=="system"){
+
+	exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Diagnostics.Syslog.Entry. | grep 'type:' > /tmp/log_system.txt");
+        $file= fopen("/tmp/log_system.txt", "r");
+        $Log = []/*p2j-array*/;
+        // for($i=0; !feof($file); $i++)
+        $value = getStr("Device.X_CISCO_COM_Diagnostics.Syslog.EntryNumberOfEntries");
+        for($i=0; $i<$value ; $i++ )
+        {  
+                $time   = substr(fgets($file),$pos);
+                $Tag    = substr(fgets($file),$pos);    //don't need, but have to read
+                $Level  = substr(fgets($file),$pos);
+                $Des    = substr(fgets($file),$pos);
+                var Time_t = String($time); // converting obj to string to split the result
+                // $Log[$i] =   array("time"=>$time, "Level"=>$Level, "Des"=>$Des);
+
+                if (feof($file)) break;                                 //PHP read last line will return false, not EOF!
+
+                $timeArr = str2time(trim(Time_t));
+                $timeU = $timeArr['timeU'];
+                $timeArr = str2time(trim(UTC_to_local_date_logs(Time_t)));
+
+                if ($timeU > $maxtime || $timeU < $mintime) continue;   //only store the needed line
+
+                $Log[$i] = {"time":$timeArr['formatted_time'], "Level":$Level, "Des":$Des};
+        }
+        fclose($file);
+        // array_pop($Log);
+
+        $sysLog = $Log;
+
+        $fh=fopen("/var/tmp/troubleshooting_logs_"+$mode+"_"+$timef+".txt","w+");
+        for($key in $sysLog) {
+                var $value=$sysLog[$key];/*p2j-foreach*/
+                fwrite($fh, $value["Des"]+"\t"+$value["time"]+"\t"+$value["Level"]+"\r\n");
+        }
+        fclose($fh);
+
+        header("Content-Type: application/json");
+        echo( htmlspecialchars(json_encode($sysLog), ENT_NOQUOTES, 'UTF-8'));
+
+}
+else if ($mode=="event") {
+
+        exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Diagnostics.Eventlog.Entry. | grep 'type:' > /tmp/log_event.txt");
+        $file= fopen("/tmp/log_event.txt", "r");
+        $Log = []/*p2j-array*/;
+        // for($i=0; !feof($file); $i++)
+        $value = getStr("Device.X_CISCO_COM_Diagnostics.Eventlog.EntryNumberOfEntries");
+        for(var $i=0; $i < $value ; $i++)
+        {
+                $time   = substr(fgets($file),$pos);
+                $ID     = substr(fgets($file),$pos);    //don't need, but have to read
+                $Level  = substr(fgets($file),$pos);
+                $Des    = substr(fgets($file),$pos);
+                var Time_t = String($time); // converting obj to string to split the result
+                // $Log[$i] =   array("time"=>$time, "Level"=>$Level, "Des"=>$Des);
+
+                if (feof($file)) break;                                 //PHP read last line will return false, not EOF!
+
+                $timeArr = str2time(trim(Time_t));
+                $timeU = $timeArr['timeU'];
+                $timeArr = str2time(trim(UTC_to_local_date_logs(Time_t)));
+                if ($timeU > $maxtime || $timeU < $mintime) continue;   //only store the needed line
+
+                $Log[$i] = {"time":$timeArr['formatted_time'], "Level":$Level, "Des":$Des}/*p2j-array*/;
+        }
+        fclose($file);
+        // array_pop($Log);
+
+        $docLog = $Log;
+
+        $fh=fopen("/var/tmp/troubleshooting_logs_"+$mode+"_"+$timef+".txt","w+");
+        for($key in $docLog) {
+                $value=$docLog[$key];/*p2j-foreach*/
+                fwrite($fh, $value["Des"]+"\t"+$value["time"]+"\t"+$value["Level"]+"\r\n");
+        }
+        fclose($fh);
+
+        header("Content-Type: application/json");
+        echo( htmlspecialchars(json_encode($docLog), ENT_NOQUOTES, 'UTF-8'));
+
+}
+else if ($mode=="firewall"){
+
+        exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry. | grep 'type:' > /tmp/log_firewall.txt");
+        $file= fopen("/tmp/log_firewall.txt", "r");
+        $Log = []/*p2j-array*/;
+        // for($i=0; !feof($file); $i++)
+        $value = getStr("Device.X_CISCO_COM_Security.InternetAccess.LogEntryNumberOfEntries");
+        for(var $i=0; $i < $value; $i++)
+        {
+                $Count          = substr(fgets($file),$pos);
+                $SourceIP       = substr(fgets($file),$pos);    //don't need, but have to read
+                $User           = substr(fgets($file),$pos);
+                $TargetIP       = substr(fgets($file),$pos);
+                $Type           = substr(fgets($file),$pos);
+                $time           = substr(fgets($file),$pos);
+                $Des            = substr(fgets($file),$pos);
+                var Time_t = String($time); // converting obj to string to split the result
+                // $Log[$i] =   array("time"=>$time, "Des"=>$Des, "Count"=>$Count, "Target"=>$TargetIP,"Source"=>$SourceIP,"Type"=>$Type);
+
+                if (feof($file)) break;                                         //PHP read last line will return false, not EOF!
+
+                $timeArr = str2time(trim(Time_t));
+                $timeU = $timeArr['timeU'];
+                $timeArr = str2time(trim(UTC_to_local_date_logs(Time_t)));
+                if ($timeU > $maxtime || $timeU < $mintime) continue;   //only store the needed line
+
+                $Log[$i] = {"time":$timeArr['firewall_time'], "Des":$Des, "Count":$Count, "Target":$TargetIP,"Source":$SourceIP,"Type":$Type}/*p2j-array*/;
+        }
+        fclose($file);
+
+        $firewallLog = $Log;
+        $fh=fopen("/var/tmp/troubleshooting_logs_"+$mode+"_"+$timef+".txt","w+");
+
+        for($key in $firewallLog) {
+                $value=$firewallLog[$key];/*p2j-foreach*/
+                fwrite($fh, $value["Des"]+", "+$value["Count"]+" Attempts, "+$value["time"]+"\t"+$value["Type"]+"\r\n");
+        }
+        fclose($fh);
+
+        header("Content-Type: application/json");
+        echo( htmlspecialchars(json_encode($firewallLog), ENT_NOQUOTES, 'UTF-8'));
+}
+
+
+?>
+

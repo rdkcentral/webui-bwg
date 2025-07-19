@@ -1,0 +1,120 @@
+#WiFi_Password_01,#WiFi_Name_01,#WiFi_Name_02
+,#WiFi_Password_02,#WiFi_Name_04,#WiFi_Password_04,#WiFi_Password_05,
+#WiFi_Name_05{
+        white-space: pre;
+}
+
+.confirm-text{
+        font-family: 'xfinSansLt';
+        font-size: 14px;
+        line-height: 24px;
+        color: #fff;
+        -webkit-font-smoothing: antialiased;
+}
+
+.left-settings  {
+        padding: 10px 30px 0px 0px;
+        text-align: right;
+        font-family: 'xfinSansLt';
+        font-size: 14px;
+        line-height: 24px;
+        color: #888;
+        -webkit-font-smoothing: antialiased;
+}
+.captive_personalize{
+	margin: 20px auto 0 auto;
+}
+.captive_personalize2{
+	width: 500px;
+}
+.captive_color{
+	color: #DC4343;
+}
+.captive_2.4{
+	margin: 1px 40px 0 0; 
+}
+.captive_name{
+	display:inline; 
+	margin: 1px 40px 0 0; 
+	text-align: right;
+}
+.captive_example{
+	display:inline; 
+	margin: 4px 0 0 -8px;
+}
+.captive_pass{
+	display:inline; 
+	margin: 1px 40px 0 -60px; 
+	text-align: right;
+}
+.captive_pwdfield{
+	display:inline; 
+	margin: 4px 0 0 -26px;
+}
+.captive_showpass{
+	display:inline-table; 
+	margin: 4px 0 0 -90px;
+}
+.captive_whitespace{
+	white-space: pre;
+}
+.captive_net{
+	margin: 10px 40px 0 -10px;
+}
+.hidden{
+        display:none;
+}
+.showdual{
+	display:inline; 
+	margin:0 260px 0 0;
+}
+.checkbox_mar{
+	margin:0 50px;
+}
+.captive_copy{
+	color: #888;
+}
+.captive_btn{
+	text-align: center; 
+	width: 215px; 
+	display: none;
+}
+.captive_self_text{
+	text-align: left; 
+	margin: 13px 0 0 115px;
+}
+.captive_requirement{
+	top:20px; 
+	left: 495px;
+}
+.captive_box{
+	float: left; 
+	padding-bottom: 50px;
+}
+.captive_para{
+	margin: 10px 0 0 0; 
+	text-align: left; 
+	width: 380px; 
+	font-size: large;
+}
+.captive_para2{
+	margin: 10px 0 0 0; 
+	text-align: left; 
+	width: 400px;
+}
+.captive_mobilenum{
+	text-align: left; 
+	margin: 27px 0 0 115px;
+}
+.captive_copy1{
+	text-align: left; 
+	color: #888;
+}
+
+.captive_img{
+	margin: 10px 20px 0 20px;
+}
+.captive_container{
+	top: -6px; 
+	left: 509px;
+}

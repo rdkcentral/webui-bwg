@@ -1,0 +1,199 @@
+<?%
+/*
+ If not stated otherwise in this file or this component's Licenses.txt file the
+ following copyright and licenses apply:
+
+ Copyright 2018 RDK Management
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+?>
+<?% include('includes/actionHandlerUtility.jst') ?>
+<?% include('includes/jwt.jst'); ?>
+<?%
+session_start();
+if (!isset($_SESSION["loginuser"]) || (!isset($_GET['restore_reboot']) && $_SESSION['loginuser'] != 'mso')) {
+	echo( '<script type="text/javascript">alert("Please Login First!"); location.href="../index.jst";</script>');
+	exit(0);
+}
+function TransEmpty($v)
+{
+	return (""==$v) ? "Failed" : $v;
+}
+
+
+if (isset($_GET['get_statusx']))
+{
+	$line1hook	= getStr("Device.X_CISCO_COM_MTA.LineTable.1.Status");
+	$line2hook	= getStr("Device.X_CISCO_COM_MTA.LineTable.2.Status");
+	$linexhook	= "On-Hook";
+	sleep(2);
+	if ("Off-Hook"==$line1hook || "Off-Hook"==$line2hook){
+		$linexhook = "Off-Hook";
+	}
+	// $linexhook	= "Off-Hook";
+	$arConfig	= {'linexhook':$linexhook}/*p2j-array*/;
+}
+else if (isset($_GET['get_status1']))
+{
+	$line1hook	= getStr("Device.X_CISCO_COM_MTA.LineTable.1.Status");
+	sleep(2);
+	// $line1hook	= "On-Hook";
+	$arConfig	= {'line1hook':$line1hook}/*p2j-array*/;
+}
+else if (isset($_GET['get_status2']))
+{
+	$line2hook	= getStr("Device.X_CISCO_COM_MTA.LineTable.2.Status");
+	sleep(2);
+	// $line2hook	= "Off-Hook";
+	$arConfig	= {'line2hook':$line2hook}/*p2j-array*/;
+}
+else if (isset($_GET['get_status3']))
+{
+        $line3hook      = getStr("Device.X_CISCO_COM_MTA.LineTable.3.Status");
+        sleep(2);
+        $arConfig       = {'line3hook':$line3hook};
+}
+else if (isset($_GET['get_status4']))
+{
+        $line4hook      = getStr("Device.X_CISCO_COM_MTA.LineTable.4.Status");
+        sleep(2);
+        $arConfig       = {'line4hook':$line4hook};
+}
+else if (isset($_GET['get_status5']))
+{
+        $line5hook      = getStr("Device.X_CISCO_COM_MTA.LineTable.5.Status");
+        sleep(2);
+        $arConfig       = {'line5hook':$line5hook};
+}
+else if (isset($_GET['get_status6']))
+{
+        $line6hook      = getStr("Device.X_CISCO_COM_MTA.LineTable.6.Status");
+        sleep(2);
+        $arConfig       = {'line6hook':$line6hook};
+}
+else if (isset($_GET['get_status7']))
+{
+        $line7hook      = getStr("Device.X_CISCO_COM_MTA.LineTable.7.Status");
+        sleep(2);
+        $arConfig       = {'line7hook':$line7hook};
+}
+else if (isset($_GET['get_status8']))
+{
+        $line8hook      = getStr("Device.X_CISCO_COM_MTA.LineTable.8.Status");
+        sleep(2);
+        $arConfig       = {'line8hook':$line8hook};
+}
+else if (isset($_GET['start_diagnostics1']))
+{
+	setStr("Device.X_CISCO_COM_MTA.LineTable.1.TriggerDiagnostics", "true", true);
+        LogStr( " : webui_event:MTA_line1_diag" );
+	sleep(15);
+	$line1hp 	= getStr("Device.X_CISCO_COM_MTA.LineTable.1.HazardousPotential");
+	$line1femf 	= getStr("Device.X_CISCO_COM_MTA.LineTable.1.ForeignEMF");
+	$line1rf 	= getStr("Device.X_CISCO_COM_MTA.LineTable.1.ResistiveFaults");
+	$line1roh 	= getStr("Device.X_CISCO_COM_MTA.LineTable.1.ReceiverOffHook");
+	$line1re 	= getStr("Device.X_CISCO_COM_MTA.LineTable.1.RingerEquivalency");	
+	
+	$arConfig	= {'line1hp':$line1hp, 'line1femf':$line1femf, 'line1rf':$line1rf, 'line1roh':$line1roh, 'line1re':$line1re}/*p2j-array*/;
+}
+else if (isset($_GET['start_diagnostics2']))
+{
+	setStr("Device.X_CISCO_COM_MTA.LineTable.2.TriggerDiagnostics", "true", true);
+        LogStr( " : webui_event:MTA_line2_diag" );
+	sleep(15);
+	$line2hp 	= getStr("Device.X_CISCO_COM_MTA.LineTable.2.HazardousPotential");
+	$line2femf 	= getStr("Device.X_CISCO_COM_MTA.LineTable.2.ForeignEMF");
+	$line2rf 	= getStr("Device.X_CISCO_COM_MTA.LineTable.2.ResistiveFaults");
+	$line2roh 	= getStr("Device.X_CISCO_COM_MTA.LineTable.2.ReceiverOffHook");
+	$line2re 	= getStr("Device.X_CISCO_COM_MTA.LineTable.2.RingerEquivalency");
+	
+	$arConfig	= {'line2hp':$line2hp, 'line2femf':$line2femf, 'line2rf':$line2rf, 'line2roh':$line2roh, 'line2re':$line2re}/*p2j-array*/;
+}
+else if (isset($_GET['start_diagnostics3']))
+{
+        setStr("Device.X_CISCO_COM_MTA.LineTable.3.TriggerDiagnostics", "true", true);
+        LogStr( " : webui_event:MTA_line3_diag" );
+        sleep(15);
+        $line3hp        = getStr("Device.X_CISCO_COM_MTA.LineTable.3.HazardousPotential");
+        $line3femf      = getStr("Device.X_CISCO_COM_MTA.LineTable.3.ForeignEMF");
+        $line3rf        = getStr("Device.X_CISCO_COM_MTA.LineTable.3.ResistiveFaults");
+        $line3roh       = getStr("Device.X_CISCO_COM_MTA.LineTable.3.ReceiverOffHook");
+        $line3re        = getStr("Device.X_CISCO_COM_MTA.LineTable.3.RingerEquivalency");
+        $arConfig       = {'line3hp':$line3hp, 'line3femf':$line3femf, 'line3rf':$line3rf, 'line3roh':$line3roh, 'line3re':$line3re};
+}
+else if (isset($_GET['start_diagnostics4']))
+{
+        setStr("Device.X_CISCO_COM_MTA.LineTable.4.TriggerDiagnostics", "true", true);
+        LogStr( " : webui_event:MTA_line4_diag" );
+        sleep(15);
+        $line4hp        = getStr("Device.X_CISCO_COM_MTA.LineTable.4.HazardousPotential");
+        $line4femf      = getStr("Device.X_CISCO_COM_MTA.LineTable.4.ForeignEMF");
+        $line4rf        = getStr("Device.X_CISCO_COM_MTA.LineTable.4.ResistiveFaults");
+        $line4roh       = getStr("Device.X_CISCO_COM_MTA.LineTable.4.ReceiverOffHook");
+        $line4re        = getStr("Device.X_CISCO_COM_MTA.LineTable.4.RingerEquivalency");
+        $arConfig       = {'line4hp':$line4hp, 'line4femf':$line4femf, 'line4rf':$line4rf, 'line4roh':$line4roh, 'line4re':$line4re};
+}
+else if (isset($_GET['start_diagnostics5']))
+{
+        setStr("Device.X_CISCO_COM_MTA.LineTable.5.TriggerDiagnostics", "true", true);
+        LogStr( " : webui_event:MTA_line5_diag" );
+        sleep(15);
+        $line5hp        = getStr("Device.X_CISCO_COM_MTA.LineTable.5.HazardousPotential");
+        $line5femf      = getStr("Device.X_CISCO_COM_MTA.LineTable.5.ForeignEMF");
+        $line5rf        = getStr("Device.X_CISCO_COM_MTA.LineTable.5.ResistiveFaults");
+        $line5roh       = getStr("Device.X_CISCO_COM_MTA.LineTable.5.ReceiverOffHook");
+        $line5re        = getStr("Device.X_CISCO_COM_MTA.LineTable.5.RingerEquivalency");
+        $arConfig       = {'line5hp':$line5hp, 'line5femf':$line5femf, 'line5rf':$line5rf, 'line5roh':$line5roh, 'line5re':$line5re};
+}
+else if (isset($_GET['start_diagnostics6']))
+{
+        setStr("Device.X_CISCO_COM_MTA.LineTable.6.TriggerDiagnostics", "true", true);
+        LogStr( " : webui_event:MTA_line6_diag" );
+        sleep(15);
+        $line6hp        = getStr("Device.X_CISCO_COM_MTA.LineTable.6.HazardousPotential");
+        $line6femf      = getStr("Device.X_CISCO_COM_MTA.LineTable.6.ForeignEMF");
+        $line6rf        = getStr("Device.X_CISCO_COM_MTA.LineTable.6.ResistiveFaults");
+        $line6roh       = getStr("Device.X_CISCO_COM_MTA.LineTable.6.ReceiverOffHook");
+        $line6re        = getStr("Device.X_CISCO_COM_MTA.LineTable.6.RingerEquivalency");
+        $arConfig       = {'line6hp':$line6hp, 'line6femf':$line6femf, 'line6rf':$line6rf, 'line6roh':$line6roh, 'line6re':$line6re};
+}
+else if (isset($_GET['start_diagnostics7']))
+{
+        setStr("Device.X_CISCO_COM_MTA.LineTable.7.TriggerDiagnostics", "true", true);
+        LogStr( " : webui_event:MTA_line7_diag" );
+        sleep(15);
+        $line7hp        = getStr("Device.X_CISCO_COM_MTA.LineTable.7.HazardousPotential");
+        $line7femf      = getStr("Device.X_CISCO_COM_MTA.LineTable.7.ForeignEMF");
+        $line7rf        = getStr("Device.X_CISCO_COM_MTA.LineTable.7.ResistiveFaults");
+        $line7roh       = getStr("Device.X_CISCO_COM_MTA.LineTable.7.ReceiverOffHook");
+        $line7re        = getStr("Device.X_CISCO_COM_MTA.LineTable.7.RingerEquivalency");
+        $arConfig       = {'line7hp':$line7hp, 'line7femf':$line7femf, 'line7rf':$line7rf, 'line7roh':$line7roh, 'line7re':$line7re};
+}
+else if (isset($_GET['start_diagnostics8']))
+{
+        setStr("Device.X_CISCO_COM_MTA.LineTable.8.TriggerDiagnostics", "true", true);
+        LogStr( " : webui_event:MTA_line8_diag" );
+        sleep(15);
+        $line8hp        = getStr("Device.X_CISCO_COM_MTA.LineTable.8.HazardousPotential");
+        $line8femf      = getStr("Device.X_CISCO_COM_MTA.LineTable.8.ForeignEMF");
+        $line8rf        = getStr("Device.X_CISCO_COM_MTA.LineTable.8.ResistiveFaults");
+        $line8roh       = getStr("Device.X_CISCO_COM_MTA.LineTable.8.ReceiverOffHook");
+        $line8re        = getStr("Device.X_CISCO_COM_MTA.LineTable.8.RingerEquivalency");
+        $arConfig       = {'line8hp':$line8hp, 'line8femf':$line8femf, 'line8rf':$line8rf, 'line8roh':$line8roh, 'line8re':$line8re};
+}
+header("Content-Type: application/json");
+$jsConfig	= json_encode($arConfig);
+echo( htmlspecialchars($jsConfig, ENT_NOQUOTES, 'UTF-8'));
+
+?>
