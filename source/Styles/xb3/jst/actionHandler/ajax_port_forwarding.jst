@@ -47,18 +47,17 @@ function PORTTEST($sport,$eport,$arraySPort,$arrayEPort) {
 }
 
 if (isset($_POST['set'])){
-        if (isValInArray($_POST['UFWDStatus'], ["Enabled", "Disabled"]/*p2j-array*/)){
-            $UFWDStatus=(($_POST['UFWDStatus']=="Enabled")?"true":"false");
-            if($UFWDStatus == "true"){
-                LogStr(" : webui_event:PortForwarding_enabled");
-            } else {
-                LogStr(" : webui_event:PortForwarding_disabled");
-            }
-            setStr("Device.NAT.X_Comcast_com_EnablePortMapping",$UFWDStatus,true);
-            while(getStr("Device.NAT.X_Comcast_com_EnablePortMapping")!=$UFWDStatus) sleep(2);
-            //$UFWDStatus=(getStr("Device.NAT.X_Comcast_com_EnablePortMapping")=="true"?"Enabled":"Disabled");
-            //echo json_encode($UFWDStatus);
-        }
+	if (isValInArray($_POST['UFWDStatus'], ["Enabled", "Disabled"]/*p2j-array*/)){
+		$UFWDStatus=(($_POST['UFWDStatus']=="Enabled")?"true":"false");
+		if($UFWDStatus == "true"){
+			LogStr(" : webui_event:PortForwarding_enabled");
+		} else {
+			LogStr(" : webui_event:PortForwarding_disabled");
+		}
+		setStr("Device.NAT.X_Comcast_com_EnablePortMapping",$UFWDStatus,true);
+		while(getStr("Device.NAT.X_Comcast_com_EnablePortMapping")!=$UFWDStatus) sleep(2);
+		$result="Success!";
+	}
 }
 
 /* special case for OneOneNat handling */
@@ -336,15 +335,16 @@ if (isset($_POST['disableAllNat'])) {
         }
 }
 
-//the set operation failure due to conflict with port trigger rules or ...
-//so need to remove the '0.0.0.0' entry
-$ids=explode(",",getInstanceIDs("Device.NAT.PortMapping."));
-        for($key in $ids) { $j=$ids[$key];/*p2j-foreach*/
-
-        if (getStr("Device.NAT.PortMapping."+$j+".InternalClient") == "0.0.0.0") {
-                delTblObj("Device.NAT.PortMapping."+$j+".");
-        }
-        } //end of foreach
+if (($result=="") || ($result=="Failed to add")) {
+		//the set operation failure due to conflict with port trigger rules or ...
+		//so need to remove the '0.0.0.0' entry
+		$ids=explode(",",getInstanceIDs("Device.NAT.PortMapping."));
+		for($key in $ids) { $j=$ids[$key];/*p2j-foreach*/
+				if (getStr("Device.NAT.PortMapping."+$j+".InternalClient") == "0.0.0.0") {
+						delTblObj("Device.NAT.PortMapping."+$j+".");
+				}
+		} //end of foreach
+}
 if( $isToOneOneNat && (typeof($result)==typeof("string")) ){
         if ( $result === '') $result = {'status':'failed'}/*p2j-array*/;
         else{
@@ -357,5 +357,3 @@ if ($isToOneOneNat) {
 echo( htmlspecialchars(json_encode($result), ENT_NOQUOTES, 'UTF-8'));
 
 ?>
-
-

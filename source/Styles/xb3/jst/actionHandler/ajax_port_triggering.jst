@@ -39,7 +39,7 @@ function PORTTEST($sp,$ep,$arraySp,$arrayEp){
 }
 
 if (isset($_POST['set'])){
-        if (isValInArray($_POST['UPTRStatus'], ["Enabled", "Disabled"]/*p2j-array*/)){
+	if (isValInArray($_POST['UPTRStatus'], ["Enabled", "Disabled"]/*p2j-array*/)){
         $UPTRStatus=(($_POST['UPTRStatus']=="Enabled")?"true":"false");
         if($UPTRStatus == "true"){
             LogStr(" : webui_event:porttrigger_enable");
@@ -48,9 +48,8 @@ if (isset($_POST['set'])){
         }
         setStr("Device.NAT.X_CISCO_COM_PortTriggers.Enable",$UPTRStatus,true);
         while(getStr("Device.NAT.X_CISCO_COM_PortTriggers.Enable")!=$UPTRStatus) sleep(2);
-        //$UPTRStatus=((getStr("Device.NAT.X_CISCO_COM_PortTriggers.Enable")=="true")?"Enabled":"Disabled");
-        //echo json_encode($UPTRStatus);
-        }
+		$result="Success!";
+    }
 }
 
 if (isset($_POST['add'])){
@@ -190,7 +189,8 @@ if (isset($_POST['add'])){
                                                 ["Device.NAT.X_CISCO_COM_PortTriggers.Trigger."+$i+".Enable",           "bool",   "true"]
                                         ];
                                 $retStatus = DmExtSetStrsWithRootObj($rootObjName, true, $paramArray);
-                                if (!$retStatus){$result="Success!";}
+                                if (!$retStatus) $result="Success!";
+								else $result = "Failed to add";
                         }
                         // echo json_encode($result);
                 }
@@ -326,17 +326,17 @@ if (isset($_POST['del'])){
 
 }
 
-if ($result=="") {
-//the set operation failure due to conflict with port forwarding rules or ...
-//so need to remove the '0~0,0~0' entry
-$ids=explode(",",getInstanceIDs("Device.NAT.X_CISCO_COM_PortTriggers.Trigger."));
-        for($key in $ids) { $j=$ids[$key];/*p2j-foreach*/
-                $tport_start = getStr("Device.NAT.X_CISCO_COM_PortTriggers.Trigger."+$j+".TriggerPortStart");
-                $fport_start = getStr("Device.NAT.X_CISCO_COM_PortTriggers.Trigger."+$j+".ForwardPortStart");
-        if ( ($tport_start == 0) && ($tport_start == $fport_start) ) {
-                delTblObj("Device.NAT.X_CISCO_COM_PortTriggers.Trigger."+$j+".");
-        }
-        } //end of foreach
+if (($result=="") || ($result=="Failed to add")) {
+		//the set operation failure due to conflict with port forwarding rules or ...
+		//so need to remove the '0~0,0~0' entry
+		$ids=explode(",",getInstanceIDs("Device.NAT.X_CISCO_COM_PortTriggers.Trigger."));
+		for($key in $ids) { $j=$ids[$key];/*p2j-foreach*/
+				$tport_start = getStr("Device.NAT.X_CISCO_COM_PortTriggers.Trigger."+$j+".TriggerPortStart");
+				$fport_start = getStr("Device.NAT.X_CISCO_COM_PortTriggers.Trigger."+$j+".ForwardPortStart");
+				if ( ($tport_start == 0) && ($tport_start == $fport_start) ) {
+						delTblObj("Device.NAT.X_CISCO_COM_PortTriggers.Trigger."+$j+".");
+				}
+		} //end of foreach
 } //end of if
 
 echo( htmlspecialchars(json_encode($result), ENT_NOQUOTES, 'UTF-8'));
