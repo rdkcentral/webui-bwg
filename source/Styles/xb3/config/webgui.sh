@@ -62,10 +62,12 @@ if [ -d /nvram/certs ]; then
 fi
 
 CURRENT_MODE=$(syscfg get OAUTHAuthMode)
-echo "Set OAUTHAuthMode to sso"
 if [ "$CURRENT_MODE" != "sso" ]; then
+    echo "Set OAUTHAuthMode to sso"
     syscfg set OAUTHAuthMode sso
     syscfg commit
+else
+	echo "OAUTHAuthMode is sso"
 fi
 
 # start lighttpd
