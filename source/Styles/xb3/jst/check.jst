@@ -177,6 +177,7 @@ $clientIp = client_IP();
                     LogStr(" : SSO FAILED ");
                     session_destroy();
                     sendError( '<script type="text/javascript"> alert($.i18n("SSO login rejected due to unexpected password input"));history.back(); </script>');
+                    exit(0);
                 }
                 $curPwd1 = "Invalid_PWD"; // trigger SSO login attempt
             }
