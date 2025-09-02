@@ -61,6 +61,14 @@ if [ -d /nvram/certs ]; then
     cat /tmp/.webui/myrouter.io.cert.pem >> $ID
 fi
 
+CURRENT_MODE=$(syscfg get OAUTHAuthMode)
+if [ "$CURRENT_MODE" != "sso" ]; then
+    echo "Set OAUTHAuthMode to sso"
+    syscfg set OAUTHAuthMode sso
+    syscfg commit
+else
+	echo "OAUTHAuthMode is sso"
+fi
 
 # start lighttpd
 source /etc/utopia/service.d/log_capture_path.sh
