@@ -170,7 +170,18 @@ $clientIp = client_IP();
                 exit(0);
             }
             $authmode=getStr( "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.OAUTH.AuthMode" );
-            if( $authmode != "sso" )
+            if( $authmode == "sso" )
+            {
+                if (isset($_POST["password"]) && $_POST["password"] != "")
+                {
+                    LogStr(" : SSO FAILED ");
+                    session_destroy();
+                    sendError( '<script type="text/javascript"> alert($.i18n("SSO login rejected due to unexpected password input"));history.back(); </script>');
+                    exit(0);
+                }
+                $curPwd1 = "Invalid_PWD"; // trigger SSO login attempt
+            }
+            else
             {
                 if( $authmode == "potd" || $_POST["password"] != "" )
                 {
@@ -189,10 +200,6 @@ $clientIp = client_IP();
                 {
                     $curPwd1 = "Invalid_PWD";    // trigger SSO login attempt
                 }
-            }
-            else
-            {
-                $curPwd1 = "Invalid_PWD";    // trigger SSO login attempt
             }
 	   // Allowing mso access only through CM IP , in case of CFG3 device CM IP is erouter0 IP.
            if ( ( (if_type($server_ip)=="rg_ip") && (strtolower($currentOpMode) !="ethernet") ) || (if_type($server_ip) =="lan_ip") || (($modelName == "CGA4131COM" || $modelName == "CGA4332COM") && (if_type($server_ip)=="remote_ip"))) 
