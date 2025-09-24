@@ -63,7 +63,7 @@ $psmMode = $DeviceControl_value['psmMode'];
 	$interface = getStr("com.cisco.spvtg.ccsp.pam.Helper.FirstDownstreamIpInterface");
 	$idArr = explode(",", getInstanceIds($interface+"IPv6Address."));
 	for($key in $idArr) { $value=$idArr[$key];/*p2j-foreach*/
-		$ipv6addr = getStr($interface+"IPv6Address.$value.IPAddress");
+		$ipv6addr = getStr($interface+"IPv6Address."+$value+".IPAddress");
 		if (stripos($ipv6addr, "fe80::") !== false) {
 			$LanGwIPv6 = $ipv6addr;
 		}
