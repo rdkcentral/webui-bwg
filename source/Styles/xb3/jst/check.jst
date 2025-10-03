@@ -348,7 +348,7 @@ $clientIp = client_IP();
 					setStr("Device.DeviceInfo.X_RDKCENTRAL-COM_UI_ACCESS","ui_failed",true);
                                         LogStr( " : Password FAIL" );
 				 	session_destroy();
-					echo( '<script type="text/javascript"> alert("Incorrect password for cusadmin! You have '+$cusAdminRemainingAttempts+' remaining login attempts; after '+$cusAdminRemainingAttempts+' attempt your account will be locked for 5 mins."); history.back(); </script>');
+					echo( '<script type="text/javascript"> alert("Authentication failed. The default password is printed on the bottom or back of your router - use this if you haven’t already changed it. You have '+$cusAdminRemainingAttempts+' remaining login attempts; after '+$cusAdminRemainingAttempts+' attempt your account will be locked for 5 mins."); history.back(); </script>');
 				}
 			}else{
 				if(($passLockEnable == "true") && ($failedAttempt_cusadmin==$passLockoutAttempt)){
@@ -362,6 +362,7 @@ $clientIp = client_IP();
 					setStr("Device.DeviceInfo.X_RDKCENTRAL-COM_UI_ACCESS","ui_success",true);
 					exec("/usr/bin/logger -t GUI -p local5.notice 'User:cusadmin login'");
 					if($passVal=="Default_PWD"){
+                                                        LogStr("webui_login: default password used");
 							create_session();
 							$newLoginAttempt=$cusAdminLoginCount+1;
 							if($newLoginAttempt>10)
