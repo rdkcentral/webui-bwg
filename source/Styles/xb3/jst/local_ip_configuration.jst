@@ -60,9 +60,9 @@ $SecWebUI               = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature
 $ipv4_dns_enable_1    = $ipv4_dns_enable;
 $ipv4_dns_enable_2    = $ipv4_dns_enable;
 
-$ipv4_dns             = explode(',', $ipv4_dns_server);
-$ipv4_primary_dns    = $ipv4_dns[0];
-$ipv4_secondary_dns    = $ipv4_dns[1];
+$ipv4_dns            = explode(',', $ipv4_dns_server);
+$ipv4_primary_dns    = (isset($ipv4_dns[0]))?$ipv4_dns[0]:[];
+$ipv4_secondary_dns  = (isset($ipv4_dns[1]))?$ipv4_dns[1]:[];
 
 $ipv6_dns_enable     = getStr("Device.DHCPv6.Server.Pool.1.X_RDKCENTRAL-COM_DNSServersEnabled");
 $ipv6_dns_server     = getStr("Device.DHCPv6.Server.Pool.1.X_RDKCENTRAL-COM_DNSServers");
@@ -1532,13 +1532,13 @@ $('#restore_ipv6').click(function(e) {
             <div class="form-row odd" id="assign_dns_manually">
                 <?%
                     $checked= (($ipv4_dns_enable_1=="true") && ($ipv4_dns_enable_2=="true"))?"checked=checked":"";
-                                        if (!strcmp($SecWebUI, "true")) {
-                                            if ( ($ipv4_primary_dns=="0.0.0.0") || ($ipv4_primary_dns=="") ) {
-                                                if ( ($ipv4_secondary_dns=="0.0.0.0") || ($ipv4_secondary_dns=="") ) {
-                                                    $checked="";
-                                                }
-                                            }
-                                        }
+					if (!strcmp($SecWebUI, "true")) {
+						if ( ($ipv4_primary_dns=="0.0.0.0") || ($ipv4_primary_dns=="") ) {
+							if ( ($ipv4_secondary_dns=="0.0.0.0") || ($ipv4_secondary_dns=="") ) {
+								$checked="";
+							}
+						}
+					}
                 ?>
                 <input type="checkbox"  name="dns_manually" value="dns_manual_ipv4" id="dns_manual_ipv4" onclick="return disablevalipv4();" <?% echo( $checked);?> />
                 <label for="DnsManual" class="acs-hide"></label> <b>Assign DNS Manually</b>
@@ -1546,8 +1546,10 @@ $('#restore_ipv6').click(function(e) {
                 <div class="form-row">
                     <label for="primary_dns_1">Primary DNS:</label>
                         <?%
-                            $ipv4_primary_dns = $ipv4_primary_dns;
                             $ipv4dns = explode(".", $ipv4_primary_dns);
+                            if (!isset($ipv4dns)) {
+                                $ipv4dns = [];
+                            }
                         ?>
                     <input type="text" size="3" maxlength="3" id="ipv4_primary_dns_1" name="ipv4_primary_dns_1" class="smallInput" value="<?% echo( $ipv4dns['0']); ?>"/>
                     <label for="primary_dns_2" class="acs-hide"></label>
@@ -1560,7 +1562,6 @@ $('#restore_ipv6').click(function(e) {
                 <div class="form-row odd">
                     <label for="secondary_dns_1">Secondary DNS:</label>
                         <?%
-                            $ipv4_secondary_dns = $ipv4_secondary_dns;
                             $ipv4secdns = explode(".", $ipv4_secondary_dns);
                             if (!isset($ipv4secdns)) {
                                 $ipv4secdns = [];
@@ -1652,10 +1653,11 @@ $('#restore_ipv6').click(function(e) {
                   //2040::/64, 2040:1::/64, 2040:1:2::/64 and 2040:1:2:3::/64
                   $prefix_arr = explode('::/', getStr("Device.IP.Interface.1.IPv6Prefix.1.Prefix"));
                   $ipv6_prefix_arr = explode(':', $prefix_arr[0]);
-                  $ipa_size = count($ipv6_prefix_arr);
+                  $ipa_size = isset($ipv6_prefix_arr)?count($ipv6_prefix_arr):0;
 
                   $v6_begin_addr = $dhcpv6_value["v6_begin_addr"];
                   $v6_beg_add_arr = explode(':', $v6_begin_addr);
+                  if (!isset($v6_beg_add_arr)) $v6_beg_add_arr = [];
                 ?>    
 
                 <label for="DBA_1">DHCPv6 Beginning Address:</label>
@@ -1684,8 +1686,9 @@ $('#restore_ipv6').click(function(e) {
            <div class="form-row ">
                 
                 <?%  
-                  $v6_end_addr = $dhcpv6_value["v6_end_addr"];
-                  $v6_end_add_arr = explode(':', $v6_end_addr);
+                    $v6_end_addr = $dhcpv6_value["v6_end_addr"];
+                    $v6_end_add_arr = explode(':', $v6_end_addr);
+                    if (!isset($v6_end_add_arr)) $v6_end_add_arr = [];
                 ?>    
 
                 <label for="DEA_1">DHCPv6 Ending Address:</label>
@@ -1721,8 +1724,8 @@ $('#restore_ipv6').click(function(e) {
                 <div class="form-row ">
                     <label for="primary_dns_ipv6_1">Primary DNS:</label>
                     <?%
-                        $ipv6_primary_dns = $ipv6_primary_dns;
                         $ipv6dns = explode(":", $ipv6_primary_dns);
+                        if (!isset($ipv6dns)) $ipv6dns = [];
                     ?>
                     <input type="text" size="3" maxlength="4" id="ipv6_primary_dns_1" name="ipv6_primary_dns_1" class="ipv6-input-local" value="<?% echo( $ipv6dns[0]); ?>"/>
                     <label for="primary_dns_ipv6_2" class="acs-hide"></label>
@@ -1742,12 +1745,9 @@ $('#restore_ipv6').click(function(e) {
                 </div>
                 <div class="form-row odd">
                     <label for="secondary_dns_ipv6_1">Secondary DNS:</label>
-                    <?%  
-                        $ipv6_secondary_dns = $ipv6_secondary_dns;
+                    <?%
                         $ipv6secdns = explode(":", $ipv6_secondary_dns);
-                        if (!isset($ipv6secdns)) {
-                            $ipv6secdns = [];
-                        }
+                        if (!isset($ipv6secdns)) $ipv6secdns = [];
                     ?>
                     <input type="text" size="2" maxlength="4" id="ipv6_secondary_dns_1" name="ipv6_secondary_dns_1" class="ipv6-input-local" value="<?% echo( $ipv6secdns[0]); ?>"/>
                     <label for="secondary_dns_ipv6_2" class="acs-hide"></label>
