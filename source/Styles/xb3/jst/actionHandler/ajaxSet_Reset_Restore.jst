@@ -121,8 +121,8 @@ switch ($infoArray[0]) {
 	case "btn6" :
 		//"mso" and "cusadmin" required to reset password of "admin"
 		if ("mso"==$thisUser) {
-			setStr("Device.Users.User.2.X_CISCO_COM_Password", "highspeed", true);
-			setStr("Device.Users.User.3.X_CISCO_COM_Password", "password", true);
+                        setStr("Device.Users.User.2.X_RDKCENTRAL-COM_PasswordReset", "true", true);
+                        setStr("Device.Users.User.3.X_RDKCENTRAL-COM_PasswordReset", "true", true);
 			echo( "mso");
                         LogStr(" : mso_webui_event:def_pwd_set");
 		}
