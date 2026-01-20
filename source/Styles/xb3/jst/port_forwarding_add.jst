@@ -55,6 +55,12 @@ $beginAddr 	= getStr("Device.DHCPv4.Server.Pool.1.MinAddress");
 $endAddr 	= getStr("Device.DHCPv4.Server.Pool.1.MaxAddress");
 $subnetMask     = getStr("Device.DHCPv4.Server.Pool.1.SubnetMask");
 
+$portPVDEnable = getStr("Device.RouterAdvertisement.X_RDK_PvD.Enable");
+$speedBoostPortRanges = getStr("Device.X_RDK_Speedboost.PortRanges");
+if (empty($portPVDEnable)) {
+	$portPVDEnable = "false";
+}
+
 $DeviceMode = $devices_value["DeviceMode"];
 //$DeviceMode = "IPv6";
 $state = $v6_value["state"];
@@ -87,6 +93,21 @@ $(document).ready(function() {
     var jsGwIP = "<?% echo( $LanGwIP); ?>".split(".");
     var jsGatewayIP = "<?% echo( $LanGwIP); ?>";
     var DeviceMode = "<?% echo( $DeviceMode); ?>";
+    
+    var portPVDEnableStr = "<?% echo($portPVDEnable); ?>";
+	var portPVDEnable = (portPVDEnableStr.toLowerCase() === "true");
+    if(portPVDEnable){
+      var speedBoostPortRanges = "<?% echo( $speedBoostPortRanges); ?>";
+      var regexIpv4 = /IPv4 (\w+) (\d+) (\d+)/;
+      var matchIpv4 = speedBoostPortRanges.match(regexIpv4);
+      if (matchIpv4) {
+        var portRangeStart = parseInt(matchIpv4[2]);
+        var portRangeEnd = parseInt(matchIpv4[3]);
+        if(portRangeStart === 0 && portRangeEnd === 0) {
+		portPVDEnable = false;
+	}
+      }
+    }
 
 function populateIPv6Addr(v6addr){
     var v6_arr = new Array();
@@ -165,6 +186,21 @@ function isIp4AddrRequired()
 	jQuery.validator.addMethod("ltstart",function(value,element){
 		return this.optional(element) || value>=parseInt($("#start_port").val());
 	}, "Please enter a value more than or equal to Start Port.");
+        jQuery.validator.addMethod("customPortRange",function(value,element){
+		if (!portPVDEnable) {
+			return true;
+		}
+
+		startPort = $('#start_port').val();
+		endPort = $('#end_port').val();
+		if(startPort > portRangeEnd){
+			return true;
+		}
+		if (endPort >= portRangeStart || (startPort >= portRangeStart && endPort <= portRangeEnd)) {
+			return false;
+		}
+		return this.optional(element) || (value.match(/^\d+$/g) && (value <= portRangeStart || value >= portRangeEnd));
+    	}, "Selected port(s) are reserved, please use ports other than " + portRangeStart + " to " + portRangeEnd + " for the configuration rule.");
 	jQuery.validator.addMethod("serviceNameRequired",function(value,element){
 		var options = ['ssh', 'ftp','aim','http','pptp','https','telnet'];
 		if(options.indexOf(value.toLowerCase()) !== -1) {
@@ -186,14 +222,16 @@ function isIp4AddrRequired()
                 required: true,
 				port: true,
 				digits: true,
-				min: 1
+				min: 1,
+                                customPortRange: true
             }
             ,end_port: {
                 required: true,
 				port: true,
 				digits: true,
 				min: 1,
-				ltstart: true
+				ltstart: true,
+                                customPortRange: true
             }
             ,server_ip_address_1: {
                 required: isIp4AddrRequired,
