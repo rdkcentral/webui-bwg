@@ -28,8 +28,29 @@
 </div><!-- end #sub-header -->
 
 <?% include('includes/nav.jst'); ?>
+<?%
+	$portPVDEnable = getStr("Device.RouterAdvertisement.X_RDK_PvD.Enable");
+	$speedBoostPortRanges = getStr("Device.X_RDK_Speedboost.PortRanges");
+	if (empty($portPVDEnable)) {
+		$portPVDEnable = "false";
+	}
+?>
 <script type="text/javascript">
 $(document).ready(function() {
+    var portPVDEnableStr = "<?% echo($portPVDEnable); ?>";
+	var portPVDEnable = (portPVDEnableStr.toLowerCase() === "true");
+        if (portPVDEnable) {
+          var speedBoostPortRanges = "<?% echo( $speedBoostPortRanges); ?>";
+          var regexIpv4 = /IPv4 (\w+) (\d+) (\d+)/;
+          var matchIpv4 = speedBoostPortRanges.match(regexIpv4);
+          if (matchIpv4) {
+            var portRangeStart = parseInt(matchIpv4[2]);
+            var portRangeEnd = parseInt(matchIpv4[3]);
+            if(portRangeStart === 0 && portRangeEnd === 0) {
+		portPVDEnable = false;
+	    }
+          }
+        }
     comcast.page.init("Port Triggering Add - Advanced", "nav-port-triggering");
     $('#service_name').focus();
 	
@@ -44,6 +65,38 @@ $(document).ready(function() {
 		var tstartport=parseInt($("#to_start_port").val());
 		return this.optional(element) || value>=tstartport;
 	}, "Please enter a value more than or equal to Target Port From.");
+        jQuery.validator.addMethod("customPortRangeFrom",function(value,element){
+		if (!portPVDEnable) {
+				return true;
+		}
+                
+		startPort = $('#from_start_port').val();
+		endPort = $('#from_end_port').val();
+
+		if(startPort > portRangeEnd){
+			return true;
+		}
+		if (endPort >= portRangeStart || (startPort >= portRangeStart && endPort <= portRangeEnd)) {
+				return false;
+		}
+		return this.optional(element) || (value.match(/^\d+$/g) && (value <= portRangeStart || value >= portRangeEnd));
+    	}, "Selected port(s) are reserved, please use ports other than " + portRangeStart + " to "+ portRangeEnd + " for the configuration rule.");
+	jQuery.validator.addMethod("customPortRangeTo",function(value,element){
+		if (!portPVDEnable) {
+				return true;
+		}
+                
+		startPort = $('#to_start_port').val();
+		endPort = $('#to_end_port').val();
+
+        	if(startPort > portRangeEnd){
+			return true;
+		}
+		if (endPort >= portRangeStart || (startPort >= portRangeStart && endPort <= portRangeEnd)) {
+				return false;
+		}
+		return this.optional(element) || (value.match(/^\d+$/g) && (value <= portRangeStart || value >= portRangeEnd));
+    	}, "Selected port(s) are reserved, please use ports other than " + portRangeStart + " to "+ portRangeEnd + " for the configuration rule.");
 	
     $("#pageForm").validate({
         rules: {
@@ -55,6 +108,7 @@ $(document).ready(function() {
 				,port: true
 				,digits: true
 				,min: 1
+                                ,customPortRangeFrom: true
             }
             ,from_end_port: {
                 required: true
@@ -62,12 +116,14 @@ $(document).ready(function() {
 				,digits: true
 				,min: 1
 				,triggermore: true
+                                ,customPortRangeFrom: true
             }
             ,to_start_port: {
                 required: true
 				,port: true
 				,digits: true
 				,min: 1
+                                ,customPortRangeTo: true
             }
             ,to_end_port: {
                 required: true
@@ -75,6 +131,7 @@ $(document).ready(function() {
 				,digits: true
 				,min: 1
 				,targetmore: true
+                                ,customPortRangeTo: true
             }
         }
         ,highlight: function( element, errorClass, validClass ) {
