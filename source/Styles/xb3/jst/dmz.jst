@@ -57,10 +57,6 @@ $IPv6Prefix = substr($IPv6Prefix,0, $IPv6Prefix.lastIndexOf("::"));
 // these means disable, MUST show empty on GUI!!!
 ("0.0.0.0" == $host)	&& ($host = "");
 ("0:0:0:0:0:0:0:0" == $hostv6)	&& ($hostv6 = "");
-$deviceSupported = "false";
-if(($modelName=="CGA4332COM")){
-        $deviceSupported = "true";
-}
 ?>
 
 <script type="text/javascript">
@@ -362,7 +358,7 @@ populate_IPv6();
 </script>
 
 <?% if($CloudUIEnable == "true"){ ?>
-<?% if($deviceSupported=="true"){ ?>
+<?% if(featureSupported()){ ?>
 <div  id="content">
         <h1>Advanced > DMZ </h1>
         <div  id=forwarding-items>

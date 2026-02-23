@@ -904,5 +904,19 @@ function current_operationalMode()
         }
          return $selectedOperationalMode;
 }
-?>
 
+/**
+* Description:
+* return true for business devices
+*/
+
+function featureSupported()
+{
+    $modelName = getStr("Device.DeviceInfo.ModelName");
+
+    // Allowed/supported models
+    $supportedModels = ['CGA4332COM', 'CGM601TCOM', 'SG417DBCT'];
+
+    return in_array($modelName, $supportedModels, true);
+}
+?>
