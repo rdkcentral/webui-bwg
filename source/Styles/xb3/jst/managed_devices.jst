@@ -49,10 +49,6 @@ $allowAll = getStr("Device.X_Comcast_com_ParentalControl.ManagedDevices.AllowAll
 ("" == $enableMD) && ($enableMD = "false");
 ("" == $allowAll) && ($allowAll = "false");
 
-$deviceSupported = "false";
-if(($modelName=="CGA4332COM")){
-        $deviceSupported = "true";
-}
 ?>
 
 <script  type="text/javascript">
@@ -227,7 +223,7 @@ $(document).ready(function() {
 </script>
 
 <?% if($CloudUIEnable == "true"){ ?>
-<?% if($deviceSupported=="true"){ ?>
+<?% if(featureSupported()){ ?>
 <div  id="content_cloudui">
         <h1>Content Control > Managed Devices</h1>
 		<div class="module data">

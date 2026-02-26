@@ -70,10 +70,6 @@ $prefix_arr = explode('::/', getStr("Device.IP.Interface.1.IPv6Prefix.1.Prefix")
 $v6_begin_addr = "0000:0000:0000:0001";
 $v6_end_addr = "ffff:ffff:ffff:fffe";
 $modelName= getStr("Device.DeviceInfo.ModelName");
-$deviceSupported = "false";
-if(($modelName=="CGA4332COM")){
-        $deviceSupported = "true";
-}
 ?>
 
 <script type="text/javascript">
@@ -489,7 +485,7 @@ $('#device').click(function(){
 </script>
 
 <?% if($CloudUIEnable == "true"){ ?>
-<?% if($deviceSupported=="true"){ ?>
+<?% if(featureSupported()){ ?>
 <div  id="content">
         <h1>Advanced > Port Forwarding > Add Service</h1>
         <div  id=forwarding-items>
