@@ -33,7 +33,17 @@
 
     $interface = getStr("com.cisco.spvtg.ccsp.pam.Helper.FirstDownstreamIpInterface");
     // $interface = "Device.IP.Interface.2.";
-	
+	$OperatingChannelBandwidth = "";
+	$RadioNumberOfEntries = getStr("Device.WiFi.RadioNumberOfEntries");
+	if($RadioNumberOfEntries)
+	{
+		for($r=1; $r <= $RadioNumberOfEntries ; $r++)
+		{
+			$OperatingChannelBandwidth = getStr("Device.WiFi.Radio."+$r+".OperatingFrequencyBand");
+			if($OperatingChannelBandwidth == "6GHz")
+				break;
+		}
+	}
 	// initial some variable to suppress some error
     $ipv6_local_addr = "";
     $ipv6_global_addr = "";
@@ -118,20 +128,45 @@
       "EncryptionMethod6"   : "Device.WiFi.AccessPoint.6.Security.X_CISCO_COM_EncryptionMethod",
       "OperatingStandards1" : "Device.WiFi.Radio.1.OperatingStandards",
       "OperatingStandards2" : "Device.WiFi.Radio.2.OperatingStandards",
-      "Status5" : "Device.WiFi.SSID.5.Status",
-      "Status6" : "Device.WiFi.SSID.6.Status" 
+      "Status5" 			: "Device.WiFi.SSID.5.Status",
+      "Status6" 			: "Device.WiFi.SSID.6.Status",
+      "OperatingFrequencyBand1" : "Device.WiFi.Radio.1.OperatingFrequencyBand",
+      "OperatingFrequencyBand2" : "Device.WiFi.Radio.2.OperatingFrequencyBand"
     }/*p2j-array*/;
+
+$wifi_param = cleanJsonDms("Device.WiFi.SSID.", $wifi_param);
+$wifi_param = cleanJsonDms("Device.WiFi.AccessPoint.", $wifi_param);
+
+if($OperatingChannelBandwidth == "6GHz")
+{
+	$wifi6_param = {
+		"SSID17"               : "Device.WiFi.SSID.17.SSID",
+		"Enable17"             : "Device.WiFi.SSID.17.Status",
+		"ModeEnabled17"        : "Device.WiFi.AccessPoint.17.Security.ModeEnabled",
+		"NumberOfEntries17"    : "Device.WiFi.AccessPoint.17.AssociatedDeviceNumberOfEntries",
+		"EncryptionMethod17"   : "Device.WiFi.AccessPoint.17.Security.X_CISCO_COM_EncryptionMethod",
+		"OperatingStandards3"  : "Device.WiFi.Radio.3.OperatingStandards",
+		"OperatingFrequencyBand3" : "Device.WiFi.Radio.3.OperatingFrequencyBand"
+	}
+	$wifi6_value = php_KeyExtGet("Device.WiFi.", $wifi6_param);
+	$OperatingFrequencyBand3  = $wifi6_value['OperatingFrequencyBand3'];
+	$radioband3               = (strstr($OperatingFrequencyBand3,"6G")) ? "6" : "5";
+}
     $wifi_value = php_KeyExtGet("Device.WiFi.", $wifi_param);
+    $OperatingFrequencyBand1  = $wifi_value['OperatingFrequencyBand1'];
+    $OperatingFrequencyBand2  = $wifi_value['OperatingFrequencyBand2'];
+    $radioband1               = (strstr($OperatingFrequencyBand1,"5G")) ? "5" : "2.4";
+    $radioband2               = (strstr($OperatingFrequencyBand2,"5G")) ? "5" : "2.4";
     $device_ctrl_param = {
         "LanIPAddress"    : "Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanIPAddress",
         "LanSubnetMask"   : "Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanSubnetMask" ,
-        "WanAddressMode"  : "Device.X_CISCO_COM_DeviceControl.WanAddressMode" 
+        "WanAddressMode"  : "Device.X_CISCO_COM_DeviceControl.WanAddressMode"
       }/*p2j-array*/;
     $device_ctrl_value = php_KeyExtGet("Device.X_CISCO_COM_DeviceControl.", $device_ctrl_param);
     /*$dhcpv4_param = {
         "Enable"                : "Device.DHCPv4.Server.Enable",
         "LeaseTime"             : "Device.DHCPv4.Server.Pool.1.LeaseTime",
-        "LeaseTimeRemaining"    : "Device.DHCPv4.Client.1.LeaseTimeRemaining" 
+        "LeaseTimeRemaining"    : "Device.DHCPv4.Client.1.LeaseTimeRemaining"
       }*//*p2j-array*/;
     //$dhcpv4_value = php_KeyExtGet("Device.DHCPv4.", $dhcpv4_param);
 //-----------------------WAN IPv6 Address - Start
@@ -664,68 +699,62 @@ if(($autoWanEnable=="true")) {
           </span>
         </div>
     </div><!-- end .module private wifi 5 --> 
-
-<!--HomeSecurity wifi start-->    
-	<?%
-	$Model_Name   = php_getstr("Device.DeviceInfo.ModelName");
-	/* CBR device won't support homesecurity wifi for now */
-        if( ($Model_Name != "CGA4131COM") && ($modelName != "CGA4332COM") )
-        {
-		$ssids 		= explode(",", php_getinstanceids("Device.WiFi.SSID."));
-		$public_v	= []/*p2j-array*/;
-		$odd 		= true;
-		$homesecurity   = []/*p2j-array*/;
-		exec("grep HOMESECURITY_SUPPORTED /etc/device.properties | grep -v grep", $homesecurity);
-		for(var $keytmp in $homesecurity) { $i=$homesecurity[$keytmp];/*p2j-foreach*/
-			if (strstr($i, 'no')) {
-			   $ssids  = []/*p2j-array*/;
-			}
-		}
-	
-	// xb3-1.6 remove homesecurity wifi for now
-	// $ssids 		= explode(",", "");
-	// hide homesecurity for cusadmin
-	if ("mso" != $_SESSION["loginuser"]) {
-		$ssids	= []/*p2j-array*/;
-	}
-
-	for(var $keytmp in $ssids) { $i=$ssids[$keytmp];/*p2j-foreach*/
-		if (intval($i)!=3){		//SSID 1,2 for Private, 3,4 for Home Security, 5,6 for Hot Spot
-			continue;
-		}
-		$freq_id = strpos(php_getstr("Device.WiFi.SSID."+$i+".LowerLayers"), "Radio.1") ? "1" : "2";
-		array_push($public_v, {
-			'ssid_id'       : $i,
-			'ssid_enable'	: (typeof($wifi_value["Enable"+$i])=="undefined") ? false :$wifi_value["Enable"+$i],
-			'ssid_name'	:  htmlspecialchars($wifi_value["SSID"+$i], ENT_NOQUOTES, 'UTF-8'),
-			'radio_mode'	: strtoupper(php_getstr("Device.WiFi.Radio."+$freq_id+".OperatingStandards")),
-			'radio_freq'	: ("1"==$freq_id) ? "2.4" : "5",
-			'client_cnt'	: (typeof($wifi_value["NumberOfEntries"+$i])=="undefined") ? 0 :$wifi_value["NumberOfEntries"+$i],
-			'security'	: encrypt_map($wifi_value["ModeEnabled"+$i], $wifi_value["EncryptionMethod"+$i])
-		}/*p2j-array*/);
-	}
-
-	for ($j=0; $j<count($public_v); $j++)
-	{
-		$wifi_enable = "Inactive";
-		if("true" == $public_v[$j]['ssid_enable']) 
-		        $wifi_enable = "Active";
-		else
-		        $wifi_enable = "Inactive";
-				
-		echo( '<div class="module forms block home_network connection_position" >');
-		echo( '<h2>HomeSecurityNetwork-'+$public_v[$j]['ssid_name']+'</h2>');
-		// !!!dont goto edit_public page!!! thant page just for hotspot tunnel configuration
-			echo( '<div class="form-row '+(($odd=!$odd)?'odd':'')+'"><span class="readonlyLabel">Wireless Network (Wi-Fi '+$public_v[$j]['radio_freq']+' GHz):</span> <span class="value">'+$wifi_enable+'</span></div>');
-			echo( '<div class="form-row '+(($odd=!$odd)?'odd':'')+'"><span class="readonlyLabel">Supported Protocols:</span> <span class="value">'+$public_v[$j]['radio_mode']+'</span></div>');
-			echo( '<div class="form-row '+(($odd=!$odd)?'odd':'')+'"><span class="readonlyLabel">Security:</span> <span class="value">'+$public_v[$j]['security']+'</span></div>');
-			echo( '<div class="form-row '+(($odd=!$odd)?'odd':'')+'"><span class="readonlyLabel">No of Clients connected:</span> <span class="value">'+$public_v[$j]['client_cnt']+'</span></div>');
-			echo( '</div>');
-		}
-	}
-	?>  
-<!--HomeSecurity wifi end-->
-
+<?%
+if($OperatingChannelBandwidth == "6GHz")
+{
+?>
+	   <div class="module forms block private-wifi connection_position">
+       <h2><div class="ssid-style">
+		<span id="priwifinet">Private Wi-Fi Network- </span>
+<span class="connection_text"><?% echo(htmlspecialchars($wifi6_value["SSID17"], ENT_NOQUOTES, 'UTF-8')); ?></span></div></h2>
+        <p class="button"><a tabindex='0' href="wireless_network_configuration_edit.jst?id=17" class="btn" id="editloc">Edit</a></p>
+        <div class="form-row">
+          <span class="readonlyLabel"><span id="wifinet6ghz">Wireless Network (Wi-Fi 6 GHz):</span></span>
+          <?%
+              if("up" == strtolower($wifi6_value["Enable17"]))
+                echo("<span class='value' id='act'>Active</span>");
+              else
+                echo("<span class='value' id='inact'>Inactive</span>");
+          ?>
+        </div>
+        <div class="form-row odd">
+          <span class="readonlyLabel" id="supprot">Supported Protocols:</span> <span class="value">
+          <?% echo( strtoupper($wifi6_value["OperatingStandards3"])); ?>
+          </span>
+        </div>
+		<div class="form-row">
+			<?%
+				//echo php_getstr("Device.WiFi.AccessPoint.2.Security.ModeEnabled");
+				$encrypt_mode	= $wifi6_value["ModeEnabled17"];
+				$encrypt_method	= $wifi6_value["EncryptionMethod17"];
+                        $idSecVal = "";
+                        if(encrypt_map($encrypt_mode, $encrypt_method)=="Open (risky)"){
+                                $idSecVal="secopenmode";
+                        }else if(encrypt_map($encrypt_mode, $encrypt_method)=="WEP 64 (risky)"){
+                                $idSecVal="secwep64";
+                        }else if(encrypt_map($encrypt_mode, $encrypt_method)=="WEP 128 (risky)"){
+                                $idSecVal="secwep128";
+                        }else if(encrypt_map($encrypt_mode, $encrypt_method)=="WPA2-PSK (AES)(Recommended)"){
+                                $idSecVal="secmode3";
+                        }else if(encrypt_map($encrypt_mode, $encrypt_method)=="WPA2-SAE (AES)"){
+                                $idSecVal="secmode3";
+                        }
+                ?>
+			<span class="readonlyLabel" id="secloc">Security:</span> <span class="value" id="<?% echo($idSecVal);?>">
+			<?%
+				echo(encrypt_map($encrypt_mode, $encrypt_method));
+			?>
+			</span>
+		</div>
+        <div class="form-row odd">
+          <span class="readonlyLabel" id="noclients">No of Clients connected:</span> <span class="value">
+          <?% echo( $wifi6_value["NumberOfEntries17"]); ?>
+          </span>
+        </div>
+    </div><!-- end .module private wifi 5 -->
+<?%
+}
+?>
 <!--HotSpot wifi start-->    
 	<?%
 	$ssids 		= explode(",", php_getinstanceids("Device.WiFi.SSID."));
@@ -811,6 +840,5 @@ if(($autoWanEnable=="true")) {
 	</div>  
 	-->
 </div><!-- end #content -->
-
 
 <?% include('includes/footer.jst'); ?>
