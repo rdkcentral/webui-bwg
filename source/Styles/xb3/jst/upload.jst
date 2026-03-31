@@ -38,7 +38,9 @@
   var passLockoutTimeMins=<?% echo( $passLockoutTimeMins); ?>;
   var do_not_submit=0;
   function findExtension(input){
-    return input.split('.').pop().toUpperCase();
+    if (!input) return "";
+    var fileName = input.replace(/^.*[\\\/]/, ''); // remove path
+    return fileName.split('.').pop().toUpperCase();
   }
   $(document).ready(function() {
     $('#uploadBtn').click(function(e){
@@ -70,7 +72,7 @@
                 jAlert('Input is not alphanumeric');
               }
               else{
-                $('form').submit();
+                $('#uploadConfig').submit();
               }
             }
           });
@@ -81,16 +83,15 @@
 
 <div id="content">
   <form id="uploadConfig" enctype="multipart/form-data" action="restoreConfig.jst" method="post">
-    <input id="id1" name="file" type="file" class="upload_border">   </input>
-    </br>
-    </br>
+    <input id="id1" name="file" type="file" class="upload_border">
+    <br>
+    <br>
     <label for="VerifyPassword">Enter Password for File:</label>
-    <input type="password" size="23" id="VerifyPassword" name="VerifyPassword" class="text" value=""></input>
-    </br>
-    </br>
-    <input class="btn" id="uploadBtn" type="button" value="Upload"> </input>
+    <input type="password" size="23" id="VerifyPassword" name="VerifyPassword" class="text" value="">
+    <br>
+    <br>
+    <input class="btn" id="uploadBtn" type="button" value="Upload">
   </form>
 </div>
 
 <?% include('includes/footer.jst'); ?>
-
