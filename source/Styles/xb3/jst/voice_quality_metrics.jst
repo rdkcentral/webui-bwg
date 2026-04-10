@@ -35,16 +35,8 @@
 $line	= "1";
 $call	= "table";
 $action	= "display";
-$deviceType=getStr("Device.DeviceInfo.ModelName");
-if (($deviceType == "CGA4131COM") || ($deviceType =="CGA4332COM"))
-{
-    $LineNumberCount=8;
-}
-else
-{
-    $LineNumberCount=2;
-}
-
+$deviceType = getStr("Device.DeviceInfo.ModelName");
+$LineNumberCount = getStr("Device.X_CISCO_COM_MTA.LineTableNumberOfEntries");
 
 if (isset($_GET['line']))
 {
@@ -139,7 +131,7 @@ $(document).ready(function() {
 		<td>
 			<select id="line_number">
 				<option value="1" selected="selected">1</option>
-                                <?% for ($k=2; $k<=$LineNumberCount; $k++) echo( '<option value="'+$k+'">'+$k+'</option>'); ?>
+				<?% for ($k=2; $k<=$LineNumberCount; $k++) echo( '<option value="'+$k+'">'+$k+'</option>'); ?>
 			</select>
 		</td>
 		<td>Call Number</td>

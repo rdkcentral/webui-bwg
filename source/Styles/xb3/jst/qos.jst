@@ -139,54 +139,19 @@ function set_config(jsConfig)
 				<th>CallP State</th>
 				<th>Loop Current</th>
 			</tr>
-			<tr>
-				<td>1</td>
-				<td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.1.CALLP.LCState")); ?></td>
-				<td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.1.CALLP.CallPState")); ?></td>
-				<td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.1.CALLP.LoopCurrent")); ?></td>
-			</tr>
-			<tr class="odd">
-				<td>2</td>
-				<td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.2.CALLP.LCState")); ?></td>
-				<td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.2.CALLP.CallPState")); ?></td>
-				<td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.2.CALLP.LoopCurrent")); ?></td>
-			</tr>
-                        <tr>
-                                <td>3</td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.3.CALLP.LCState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.3.CALLP.CallPState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.3.CALLP.LoopCurrent")); ?></td>
-                        </tr>
-                        <tr class="odd">
-                                <td>4</td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.4.CALLP.LCState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.4.CALLP.CallPState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.4.CALLP.LoopCurrent")); ?></td>
-                        </tr>
-                        <tr>
-                                <td>5</td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.5.CALLP.LCState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.5.CALLP.CallPState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.5.CALLP.LoopCurrent")); ?></td>
-                        </tr>
-                        <tr class="odd">
-                                <td>6</td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.6.CALLP.LCState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.6.CALLP.CallPState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.6.CALLP.LoopCurrent")); ?></td>
-                        </tr>
-                        <tr>
-                                <td>7</td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.7.CALLP.LCState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.7.CALLP.CallPState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.7.CALLP.LoopCurrent")); ?></td>
-                        </tr>
-                        <tr class="odd">
-                                <td>8</td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.8.CALLP.LCState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.8.CALLP.CallPState")); ?></td>
-                                <td><?% echo( getStr("Device.X_CISCO_COM_MTA.LineTable.8.CALLP.LoopCurrent")); ?></td>
-			</tr>
+			<?%
+				$LineTableNumberOfEntries = getStr("Device.X_CISCO_COM_MTA.LineTableNumberOfEntries");
+				for ($i = 1; $i <= $LineTableNumberOfEntries; $i++) {
+					var $status = getStr("Device.X_CISCO_COM_MTA.LineTable." + $i + ".Status");
+					var $rowClass = ($i % 2 == 0) ? "odd" : "";
+					echo('<tr class="' + $rowClass + '">');
+						echo('<td>' + $i + '</td>');
+						echo('<td>'+ getStr("Device.X_CISCO_COM_MTA.LineTable.$i.CALLP.LCState") +'</td>');
+						echo('<td>'+ getStr("Device.X_CISCO_COM_MTA.LineTable.$i.CALLP.CallPState") +'</td>');
+						echo('<td>'+ getStr("Device.X_CISCO_COM_MTA.LineTable.$i.CALLP.LoopCurrent") +'</td>');
+					echo('</tr>');
+			   }
+			?>
 		</table>
     </div> <!-- end .module -->
 
