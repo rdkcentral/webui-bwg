@@ -28,7 +28,6 @@
 	$ft = []/*p2j-array*/;
 	$id = explode(",", getInstanceIds("Device.Routing.Router.1.IPv4Forwarding."));
 	for(var $keytmp in $id) {
-		if($keytmp==0) continue;
 		$i=$id[$keytmp];/*p2j-foreach*/
 		if ("true" == getStr("Device.Routing.Router.1.IPv4Forwarding."+$i+".StaticRoute"))
 		{
