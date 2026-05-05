@@ -41,18 +41,18 @@ comcast.page.init("Gateway > Connection > MTA > Line Diagnostics", "nav-mta-line
 			document.getElementById("line" + line + item).value = "InProgress";
 		});
 
-		jProgress($.i18n("Check telephony line status, please wait..."), 60);
+		jProgress("Check telephony line status, please wait...", 60);
 
 		$.get(
 			"actionHandler/ajaxSet_mta_Line_Diagnostics.jst",
-			{ "get_status"+line: "true" },
+			{ ["get_status"+line]: "true" },
 			function (msg) {
 				jHide();
 
 				if (msg["line"+line+"hook"] === "Off-Hook") {
 					jConfirm(
-						$.i18n("Phone is Off-Hook, do you want to start the test anyway?"),
-						$.i18n("Are you sure?"),
+						"Phone is Off-Hook, do you want to start the test anyway?",
+						"Are you sure?",
 						function (ret) {
 							if (ret) {
 								startDiagnostics(line);
@@ -68,11 +68,11 @@ comcast.page.init("Gateway > Connection > MTA > Line Diagnostics", "nav-mta-line
 	});
 
 	function startDiagnostics(line) {
-		jProgress($.i18n("This may take several seconds..."), 60);
+		jProgress("This may take several seconds...", 60);
 
 		$.get(
 			"actionHandler/ajaxSet_mta_Line_Diagnostics.jst",
-			{ "start_diagnostics"+line: "true" },
+			{ ["start_diagnostics"+line]: "true" },
 			function (msg) {
 				["hp", "femf", "rf", "roh", "re"].forEach(function (item) {
 					document.getElementById("line" + line + item).value =
@@ -93,7 +93,7 @@ comcast.page.init("Gateway > Connection > MTA > Line Diagnostics", "nav-mta-line
 </div>
 <?%
 	$voice_lines    = getStr("Device.X_CISCO_COM_MTA.LineTableNumberOfEntries");
-	for ($i=0; $i <= Number($voice_lines); $i++) {
+	for ($i=1; $i <= Number($voice_lines); $i++) {
 ?>
 <div class="module forms">
 	<input type="hidden" value="mta_line_diagnostics" name="file"/>
