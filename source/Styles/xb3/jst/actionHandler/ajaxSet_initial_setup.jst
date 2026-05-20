@@ -63,8 +63,8 @@ function isValidIP($ip, $ipRange){
 }
 function ipRange($gwAddress, $subnetMask){
 	$subnetMask_nr		= ip2long($subnetMask);
-	$gateway_ip_start	= long2ip((ip2long($gwAddress) & $subnetMask_nr) + 1);
-	$gateway_ip_end		= long2ip((ip2long($gwAddress) | ~$subnetMask_nr) - 1);
+        $gateway_ip_start       = long2ip((bitwise_BigNum(ip2long($gwAddress) , $subnetMask_nr , 'AND')) + 1);
+        $gateway_ip_end         = long2ip((bitwise_BigNum(ip2long($gwAddress) , ~$subnetMask_nr , 'OR')) - 1);
 	return [$gateway_ip_start, $gateway_ip_end]/*p2j-array*/;
 }
 function valid_GW_IP($beginAddress, $endAddress, $gwAddress){
@@ -132,9 +132,9 @@ if($validation) {
 if (array_key_exists('dmz_host', $ip_config)) {	
 	setStr("Device.NAT.X_CISCO_COM_DMZ.Enable", $ip_config['dmz_enable'], false);
         if($ip_config['dmz_enable'] == "true") {
-            LogStr( : webui_event:DMZ_enabled)";
+            LogStr(" : webui_event:DMZ_enabled");
         } else {
-            LogStr( : webui_event:DMZ_disabled");
+            LogStr(" : webui_event:DMZ_disabled");
         }
 	setStr("Device.NAT.X_CISCO_COM_DMZ.InternalIP", $ip_config['dmz_host'], true);
 }
