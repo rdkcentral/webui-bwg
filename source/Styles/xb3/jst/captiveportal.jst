@@ -92,7 +92,7 @@ csrfProtector.init();
 	$rootObjName    = "Device.Hosts.Host.";
 	$paramNameArray = ["Device.Hosts.Host."]/*p2j-array*/;
 	$mapping_array  = ["IPAddress", "Layer1Interface"]/*p2j-array*/;
-	$mapping_array = array_merge($mapping_array, getMloMappingFields());
+	$mapping_array = $mapping_array.concat(getMloMappingFields());
 
 	$HostIndexArr = DmExtGetInstanceIds("Device.Hosts.Host.");
 	if(0 == $HostIndexArr[0]){  
