@@ -803,13 +803,9 @@ function isLayer1InterfaceOnSsid($layer1Interface, $ssid){
 	if ("" == $layer1Interface) {
 		return false;
 	}
-	var $ssidPattern = "WiFi.SSID." + $ssid;
-	if (stristr($layer1Interface, $ssidPattern)) {
-		return true;
-	}
-	var $ssidSuffix = "WiFi.SSID." + $ssid;
-	return (stristr($layer1Interface, $ssidSuffix) !== false &&
-		$layer1Interface.substr(-$ssidSuffix.length).toLowerCase() === $ssidSuffix.toLowerCase());
+	var $ssidToken = "WiFi.SSID." + $ssid;
+	var $ssidRegex = new RegExp("(^|\\.)" + $ssidToken + "(\\.|$)", "i");
+	return $ssidRegex.test($layer1Interface);
 }
 
 /**
@@ -843,7 +839,11 @@ function getMloLayer1Interface($hostData, $instanceID){
 function ProcessLay1Interface($interface){
 	$host=[];
 	if (stristr($interface, "WiFi")){
-		if (stristr($interface, "WiFi.SSID.1")) {
+		if (stristr($interface, "WiFi.SSID.17")) {
+			$host['networkType'] = "Private";
+			$host['connectionType'] = "Wi-Fi 6G";
+		}
+		else if (stristr($interface, "WiFi.SSID.1")) {
 			$host['networkType'] = "Private";
 			$host['connectionType'] = "Wi-Fi 2.4G";
 		}
