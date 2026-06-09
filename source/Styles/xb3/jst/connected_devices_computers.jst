@@ -139,7 +139,7 @@
                                         $onlinePrivateNetworkHost['hostNum'] += 1;
               		if(!isset($onlinePrivateNetworkHost[$j.toString()]))
                			$onlinePrivateNetworkHost[$j.toString()]={};
-                                $onlinePrivateNetworkHost[$j.toString()]['instanceID'] = $i + 1;
+                                        $onlinePrivateNetworkHost[$j.toString()]['instanceID'] = $i + 1;
                                 array_push($onlinePrivateInstanceArr, $onlinePrivateNetworkHost[$j.toString()]['instanceID']);
 
                                 if (($Host[$i]['HostName'] == "*") || (strlen($Host[$i]['HostName']) == 0))
@@ -163,10 +163,10 @@
                     $onlinePrivateNetworkHost[$j.toString()]['Comments'] = $Host[$i.toString()]['Comments'];
 
 
-                    if (stristr($tmpHost['connectionType'], 'Wi-Fi')) 
-                       $onlinePrivateNetworkHost[$j]['RSSI'] = $clients_RSSI[strtoupper($Host[$i.toString()]['PhysAddress'])]+" dBm";
-                    else 
-                       $onlinePrivateNetworkHost[$j]['RSSI'] = "NA";
+                                        if (stristr($tmpHost['connectionType'], 'Wi-Fi')) 
+                                                $onlinePrivateNetworkHost[$j]['RSSI'] = $clients_RSSI[strtoupper($Host[$i.toString()]['PhysAddress'])]+" dBm";
+                                        else 
+                                                $onlinePrivateNetworkHost[$j]['RSSI'] = "NA";
 
 		    if(in_array(strtolower($onlinePrivateNetworkHost[$j.toString()]['PhysAddress']), $arrayBlockMAC)){
 		        $onlinePrivateNetworkHost[$j.toString()]['Blocked'] = true;
@@ -180,7 +180,7 @@
 
                             $offlinePrivateNetworkHost['hostNum'] += 1;
                             $offlinePrivateNetworkHost[$k]={};
-                            $offlinePrivateNetworkHost[$k.toString()]['instanceID'] = $i + 1;
+                                        $offlinePrivateNetworkHost[$k.toString()]['instanceID'] = $Host[$i.toString()]['instanceID'];
                             array_push($offlinePrivateInstanceArr, $offlinePrivateNetworkHost[$k.toString()]['instanceID']);
 
                             if (($Host[$i]['HostName'] == "*") || (strlen($Host[$i]['HostName']) == 0))

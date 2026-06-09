@@ -63,6 +63,7 @@
         $rootObjName    = "Device.Hosts.Host.";
         $paramNameArray = ["Device.Hosts.Host."]/*p2j-array*/;
         $mapping_array  = ["PhysAddress", "IPAddress", "Layer1Interface", "HostName", "Active", "AddressSource", "X_CISCO_COM_RSSI", "Comments", "IPv4Address.1.IPAddress", "IPv6Address.1.IPAddress", "IPv6Address.2.IPAddress","IPv6Address.3.IPAddress"]/*p2j-array*/;
+        $mapping_array = $mapping_array.concat(getMloMappingFields());
         $HostIndexArr = DmExtGetInstanceIds("Device.Hosts.Host.");
         $HostNum = 0;
         if(0 == $HostIndexArr[0]){
@@ -85,7 +86,7 @@
                 $NetworkExtender          = {}/*p2j-array*/;
                 $offlinePrivateNetworkHost['hostNum'] = 0;
                 $PublicNetworkHost['hostNum']  = 0;
-                $Host = getParaValues($rootObjName, $paramNameArray, $mapping_array);
+                $Host = getParaValues($rootObjName, $paramNameArray, $mapping_array, true);
                 if(!empty($Host)){
                         //check if online device is there in Blocked Devices List using MAC Address
                         //if it's there remove 'X' button for "Online Blocked Devices"
@@ -118,45 +119,90 @@
                         }
                     //This for loop aims to construct online and offline network host arrays based on $Host
                     for ($i=0,$j=0,$k=0,$x=0; $i < $HostNum; $i++) {
-                $Host[$i.toString()]['instanceID'] = $i + 1;
+                $Host[$i.toString()]['instanceID'] = $Host[$i.toString()]['__id'];
                 $Host[$i]['HostName'] = htmlspecialchars($Host[$i]['HostName'], ENT_NOQUOTES, 'UTF-8');
                 $Host[$i]['Comments'] = htmlspecialchars($Host[$i]['Comments'], ENT_NOQUOTES, 'UTF-8');
-                $tmpHost = ProcessLay1Interface( $Host[$i.toString()]['Layer1Interface']);
+                $mloInfo = getMloLayer1Info($Host[$i.toString()], $Host[$i.toString()]['__id']);
+                $mloLayer1Interfaces = getMloLayer1Interfaces($Host[$i.toString()], $Host[$i.toString()]['__id']);
+                $selectedLayer1Interface = $mloInfo['Layer1Interface'];
+                $selectedRSSI = $mloInfo['BestMloRSSI'];
+                $hasMloRSSI = $mloInfo['HasMloRSSI'];
+                $tmpHost = ProcessLay1Interface($selectedLayer1Interface);
                         if ($tmpHost['networkType'] == "Private"){
                         //construct private network host info
                         if ( !strcasecmp("true", $Host[$i.toString()]['Active']) ) {
                                 //construct online private network host info
-                                        $onlinePrivateNetworkHost['hostNum'] += 1;
-              		if(!isset($onlinePrivateNetworkHost[$j.toString()]))
-               			$onlinePrivateNetworkHost[$j.toString()]={};
-                                $onlinePrivateNetworkHost[$j.toString()]['instanceID'] = $i + 1;
-                                array_push($onlinePrivateInstanceArr, $onlinePrivateNetworkHost[$j.toString()]['instanceID']);
-                                if (($Host[$i]['HostName'] == "*") || (strlen($Host[$i]['HostName']) == 0))
-                                        $onlinePrivateNetworkHost[$j.toString()]['HostName'] = strtoupper($Host[$i.toString()]['PhysAddress']);
-                                else
-                                        $onlinePrivateNetworkHost[$j.toString()]['HostName'] = $Host[$i.toString()]['HostName'];
-                                array_push($onlineHostNameArr, $onlinePrivateNetworkHost[$j.toString()]['HostName']);
-                    $onlinePrivateNetworkHost[$j.toString()]['IPv4Address'] = $Host[$i.toString()]['IPv4Address.1.IPAddress'];
-                    $Host[$i.toString()]['IPv6Address.2.IPAddress'] = isset($Host[$i.toString()]['IPv6Address.2.IPAddress']) ? $Host[$i.toString()]['IPv6Address.2.IPAddress'] : "";
-                    $onlinePrivateNetworkHost[$j.toString()]['IPv6Address1'] = $Host[$i.toString()]['IPv6Address.2.IPAddress'];
-		    $Host[$i.toString()]['IPv6Address.1.IPAddress'] = isset($Host[$i.toString()]['IPv6Address.1.IPAddress']) ? $Host[$i.toString()]['IPv6Address.1.IPAddress'] : "";
-                    $Host[$i.toString()]['IPv6Address.3.IPAddress'] = isset($Host[$i.toString()]['IPv6Address.3.IPAddress']) ? $Host[$i.toString()]['IPv6Address.3.IPAddress'] : "";
-                    $onlinePrivateNetworkHost[$j.toString()]['IPv6Address2'] = resolve_IPV6_global_address($Host[$i.toString()]['IPv6Address.1.IPAddress'],$Host[$i.toString()]['IPv6Address.3.IPAddress']);
-                    $onlinePrivateNetworkHost[$j.toString()]['PhysAddress'] = strtoupper($Host[$i.toString()]['PhysAddress']);
-                            array_push($onlineHostMAC, $onlinePrivateNetworkHost[$j.toString()]['PhysAddress']);
-                    $onlinePrivateNetworkHost[$j.toString()]['AddressSource'] = $Host[$i.toString()]['AddressSource'];
-                    $onlinePrivateNetworkHost[$j.toString()]['Connection'] = $tmpHost['connectionType'];
-                    $onlinePrivateNetworkHost[$j.toString()]['Comments'] = $Host[$i.toString()]['Comments'];
-                    if (stristr($tmpHost['connectionType'], 'Wi-Fi')) 
-                       $onlinePrivateNetworkHost[$j]['RSSI'] = $clients_RSSI[strtoupper($Host[$i.toString()]['PhysAddress'])]+" dBm";
-                    else 
-                       $onlinePrivateNetworkHost[$j]['RSSI'] = "NA";
-		    if(in_array(strtolower($onlinePrivateNetworkHost[$j.toString()]['PhysAddress']), $arrayBlockMAC)){
-		        $onlinePrivateNetworkHost[$j.toString()]['Blocked'] = true;
-		    } else {
-			$onlinePrivateNetworkHost[$j.toString()]['Blocked'] = false;
-		    }
-                    $j++;
+                                        $displayLayer1Interfaces = []/*p2j-array*/;
+                                        if (!empty($mloLayer1Interfaces)) {
+                                                for ($mloIdx=0; $mloIdx<count($mloLayer1Interfaces); $mloIdx++) {
+                                                        $mloLayerInterface = $mloLayer1Interfaces[$mloIdx];
+                                                        if (stristr($mloLayerInterface, "WiFi.SSID.")) {
+                                                                array_push($displayLayer1Interfaces, $mloLayerInterface);
+                                                        }
+                                                }
+                                        }
+                                        if (empty($displayLayer1Interfaces)) {
+                                                array_push($displayLayer1Interfaces, $selectedLayer1Interface);
+                                        }
+
+                                        for ($layerIdx=0; $layerIdx<count($displayLayer1Interfaces); $layerIdx++) {
+                                                $currentLayer1Interface = $displayLayer1Interfaces[$layerIdx];
+                                                $layerHost = ProcessLay1Interface($currentLayer1Interface);
+                                                if ($layerHost['networkType'] != "Private") {
+                                                        continue;
+                                                }
+
+                                                $onlinePrivateNetworkHost['hostNum'] += 1;
+                                                if(!isset($onlinePrivateNetworkHost[$j.toString()]))
+                                                        $onlinePrivateNetworkHost[$j.toString()]={};
+
+                                                $baseInstanceID = $Host[$i.toString()]['instanceID'];
+                                                $displayInstanceID = (count($displayLayer1Interfaces) > 1) ? ($baseInstanceID + "_" + ($layerIdx + 1)) : $baseInstanceID;
+                                                $onlinePrivateNetworkHost[$j.toString()]['instanceID'] = $displayInstanceID;
+                                                array_push($onlinePrivateInstanceArr, $onlinePrivateNetworkHost[$j.toString()]['instanceID']);
+
+                                                if (($Host[$i]['HostName'] == "*") || (strlen($Host[$i]['HostName']) == 0))
+                                                        $onlinePrivateNetworkHost[$j.toString()]['HostName'] = strtoupper($Host[$i.toString()]['PhysAddress']);
+                                                else
+                                                        $onlinePrivateNetworkHost[$j.toString()]['HostName'] = $Host[$i.toString()]['HostName'];
+                                                array_push($onlineHostNameArr, $onlinePrivateNetworkHost[$j.toString()]['HostName']);
+
+                                                $onlinePrivateNetworkHost[$j.toString()]['IPv4Address'] = $Host[$i.toString()]['IPv4Address.1.IPAddress'];
+                                                $Host[$i.toString()]['IPv6Address.2.IPAddress'] = isset($Host[$i.toString()]['IPv6Address.2.IPAddress']) ? $Host[$i.toString()]['IPv6Address.2.IPAddress'] : "";
+                                                $onlinePrivateNetworkHost[$j.toString()]['IPv6Address1'] = $Host[$i.toString()]['IPv6Address.2.IPAddress'];
+						$Host[$i.toString()]['IPv6Address.1.IPAddress'] = isset($Host[$i.toString()]['IPv6Address.1.IPAddress']) ? $Host[$i.toString()]['IPv6Address.1.IPAddress'] : "";
+                                                $Host[$i.toString()]['IPv6Address.3.IPAddress'] = isset($Host[$i.toString()]['IPv6Address.3.IPAddress']) ? $Host[$i.toString()]['IPv6Address.3.IPAddress'] : "";
+                                                $onlinePrivateNetworkHost[$j.toString()]['IPv6Address2'] = resolve_IPV6_global_address($Host[$i.toString()]['IPv6Address.1.IPAddress'],$Host[$i.toString()]['IPv6Address.3.IPAddress']);
+                                                $onlinePrivateNetworkHost[$j.toString()]['PhysAddress'] = strtoupper($Host[$i.toString()]['PhysAddress']);
+                                                array_push($onlineHostMAC, $onlinePrivateNetworkHost[$j.toString()]['PhysAddress']);
+                                                $onlinePrivateNetworkHost[$j.toString()]['AddressSource'] = $Host[$i.toString()]['AddressSource'];
+                                                $onlinePrivateNetworkHost[$j.toString()]['Connection'] = $layerHost['connectionType'];
+                                                $onlinePrivateNetworkHost[$j.toString()]['Comments'] = $Host[$i.toString()]['Comments'];
+
+                                                if (stristr($layerHost['connectionType'], 'Wi-Fi')) {
+                                                        if ($hasMloRSSI) {
+                                                                $onlinePrivateNetworkHost[$j]['RSSI'] = $selectedRSSI+" dBm";
+                                                        }
+                                                        else if (typeof($clients_RSSI[strtoupper($Host[$i.toString()]['PhysAddress'])]) != "undefined") {
+                                                                $onlinePrivateNetworkHost[$j]['RSSI'] = $clients_RSSI[strtoupper($Host[$i.toString()]['PhysAddress'])]+" dBm";
+                                                        }
+                                                        else if ("" != $Host[$i.toString()]['X_CISCO_COM_RSSI']) {
+                                                                $onlinePrivateNetworkHost[$j]['RSSI'] = $Host[$i.toString()]['X_CISCO_COM_RSSI']+" dBm";
+                                                        }
+                                                        else {
+                                                                $onlinePrivateNetworkHost[$j]['RSSI'] = "NA";
+                                                        }
+                                                }
+                                                else {
+                                                        $onlinePrivateNetworkHost[$j]['RSSI'] = "NA";
+                                                }
+						if(in_array(strtolower($onlinePrivateNetworkHost[$j.toString()]['PhysAddress']), $arrayBlockMAC)){
+							$onlinePrivateNetworkHost[$j.toString()]['Blocked'] = true;
+						} else {
+							$onlinePrivateNetworkHost[$j.toString()]['Blocked'] = false;
+						}
+                                                $j++;
+                                        }
                         }
                         else {
                             $offlinePrivateNetworkHost['hostNum'] += 1;
