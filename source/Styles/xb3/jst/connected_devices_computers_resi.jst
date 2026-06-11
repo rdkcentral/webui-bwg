@@ -133,7 +133,21 @@
                         if ( !strcasecmp("true", $Host[$i.toString()]['Active']) ) {
                                 //construct online private network host info
                                         $displayLayer1Interfaces = []/*p2j-array*/;
+                                        $isMloClient = (
+                                                typeof($Host[$i.toString()]['X_RDK-MldClient']) != "undefined" &&
+                                                !strcasecmp("true", $Host[$i.toString()]['X_RDK-MldClient'])
+                                        );
+                                        $hasWiFiInterface = false;
                                         if (!empty($mloLayer1Interfaces)) {
+                                                for ($mloIdx=0; $mloIdx<count($mloLayer1Interfaces); $mloIdx++) {
+                                                        $mloLayerInterface = $mloLayer1Interfaces[$mloIdx];
+                                                        if (stristr($mloLayerInterface, "WiFi.SSID.")) {
+                                                                $hasWiFiInterface = true;
+                                                        }
+                                                }
+                                        }
+
+                                        if ($isMloClient && $hasWiFiInterface) {
                                                 for ($mloIdx=0; $mloIdx<count($mloLayer1Interfaces); $mloIdx++) {
                                                         $mloLayerInterface = $mloLayer1Interfaces[$mloIdx];
                                                         if (stristr($mloLayerInterface, "WiFi.SSID.")) {
@@ -141,8 +155,15 @@
                                                         }
                                                 }
                                         }
+                                        else {
+                                                $displayLayer1Interfaces = $mloLayer1Interfaces;
+                                        }
+
                                         if (empty($displayLayer1Interfaces)) {
                                                 array_push($displayLayer1Interfaces, $selectedLayer1Interface);
+                                        }
+                                        if (empty($displayLayer1Interfaces)) {
+                                                array_push($displayLayer1Interfaces, "");
                                         }
 
                                         for ($layerIdx=0; $layerIdx<count($displayLayer1Interfaces); $layerIdx++) {
