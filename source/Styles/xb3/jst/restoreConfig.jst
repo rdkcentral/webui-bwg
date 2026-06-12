@@ -56,25 +56,25 @@ exec('cp '+$_FILES['file']['tmp_name']+' '+$target);
 $fileExplode=explode(".",$_FILES['file']['name']);
 $fileExtension=$fileExplode[1];
 $restoreStatus=-1;
-		if (!strcasecmp($fileExtension,"cf2")) {
-			// Run in a background subshell with a 5-second sleep so exec()
-			// returns immediately. The sleep ensures the HTTP response is
-			// fully transmitted before save_restore_config can restart httpd
-			// and reset the TCP connection.
-			exec('(sleep 5; save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]+' > /dev/null 2>&1) &');
-			$restoreStatus = 0;
-		}
-		else if (!strcasecmp($fileExtension,"cfg")) {
-			exec('(sleep 5; save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]+' > /dev/null 2>&1) &');
-			$restoreStatus = 0;
-		}
-		if($restoreStatus==0)
-		{
-			exec('/usr/bin/logger -t GUI -p local5.notice Configuration was successfully updated.');
-		}
-		if ($restoreStatus!=0){
-			echo( "Error: unsupported file type. Please upload a valid .CF2 or .cfg file.");
-		}
+                if (!strcasecmp($fileExtension,"cf2")) {
+                        // Run in a background subshell with a 5-second sleep so exec()
+                        // returns immediately. The sleep ensures the HTTP response is
+                        // fully transmitted before save_restore_config can restart httpd
+                        // and reset the TCP connection.
+                        exec('(sleep 5; save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]+') > /dev/null 2>&1 < /dev/null &');
+                        $restoreStatus = 0;
+                }
+                else if (!strcasecmp($fileExtension,"cfg")) {
+                        exec('(sleep 5; save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]+') > /dev/null 2>&1 < /dev/null &');
+                        $restoreStatus = 0;
+                }
+                if($restoreStatus==0)
+                {
+                        exec('/usr/bin/logger -t GUI -p local5.notice Configuration was successfully updated.');
+                }
+                if ($restoreStatus!=0){
+                        echo( "Error: unsupported file type. Please upload a valid .CF2 or .cfg file.");
+                }
 ?>
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -87,11 +87,11 @@ $restoreStatus=-1;
 <!--CSS-->
 <link rel="stylesheet" type="text/css" media="screen" href="./cmn/css/common-min.css" />
 <!--[if IE 6]>
-		<link rel="stylesheet" type="text/css" href="./cmn/css/ie6-min.css" />
-		<![endif]-->
+                <link rel="stylesheet" type="text/css" href="./cmn/css/ie6-min.css" />
+                <![endif]-->
 <!--[if IE 7]>
-		<link rel="stylesheet" type="text/css" href="./cmn/css/ie7-min.css" />
-		<![endif]-->
+                <link rel="stylesheet" type="text/css" href="./cmn/css/ie7-min.css" />
+                <![endif]-->
 <link rel="stylesheet" type="text/css" media="print" href="./cmn/css/print.css" />
 <link rel="stylesheet" type="text/css" media="screen" href="./cmn/css/lib/jquery.radioswitch.css" />
 <link rel="stylesheet" type="text/css" media="screen" href="./cmn/css/lib/progressBar.css" />
@@ -108,68 +108,67 @@ $restoreStatus=-1;
 </head>
 <body>
 <script type="text/javascript">
-		// Capture protocol+host at page-load time so checkForRebooting uses the
-		// same scheme (http or https) that the user originally loaded the UI with.
-		// This prevents the polling from breaking when the restored config
-		// disables HTTP after reboot, leaving HTTP users stuck forever.
-		var _baseUrl = window.location.protocol + "//" + window.location.host + "/";
-		setTimeout(function() {
-			var token = "<?% echo(  $_SESSION['Csrf_token'] );?>";
-			if(0 == <?% echo( $restoreStatus); ?>){	//Need Reboot to restore the saved configuration.
-				var info = ["btn1", "Device"];
-				var jsonInfo = '["' + info[0] + '","' + info[1]+ '"]';
-				$.ajax({
-					type: "POST",
-					url: "actionHandler/ajaxSet_Reset_Restore.jst",
-					data: { resetInfo: jsonInfo,csrfp_token: token },
+                // Capture protocol+host at page-load time so checkForRebooting uses the
+                // same scheme (http or https) that the user originally loaded the UI with.
+                // This prevents the polling from breaking when the restored config
+                // disables HTTP after reboot, leaving HTTP users stuck forever.
+                var _baseUrl = window.location.protocol + "//" + window.location.host + "/";
+                setTimeout(function() {
+                        var token = "<?% echo(  $_SESSION['Csrf_token'] );?>";
+                        if(0 == <?% echo( $restoreStatus); ?>){ //Need Reboot to restore the saved configuration.
+                                var info = ["btn1", "Device"];
+                                var jsonInfo = '["' + info[0] + '","' + info[1]+ '"]';
+                                $.ajax({
+                                        type: "POST",
+                                        url: "actionHandler/ajaxSet_Reset_Restore.jst",
+                                        data: { resetInfo: jsonInfo,csrfp_token: token },
                                        dataType:"json",
-					success: function(results){
-						if (results.reboot == true) {
-							jProgress("Configuration was successfully updated from <?%  echo( $_FILES['file']['name'] );?>. Please wait for reboot", 999999,"Configuration Success");
-							setTimeout(checkForRebooting, 4 * 60 * 1000);
-						}
-						else if (results.reboot != true) {
-							jAlert("Configuration updated. Failed to Reboot");
-						}
-					}
-				});
-			}
-		}, 100);
-		function checkForRebooting() {
-			$.ajax({
-				type: "GET",
-				url: _baseUrl + "index.jst",
-				timeout: 10000,
-				success: function() {
-					/* goto login page once the box reboots*/
-					window.open (_baseUrl + "index.jst","_self");
-					setTimeout(function(){ window.close(); }, 1000);
-				},
-				error: function() {
-					/* retry after 2 minutes */
-					setTimeout(checkForRebooting, 30 * 1000);
-				}
-			});
-		}
-		function errorPrint(message) {
-			jAlert(message,'That did not work',function(){ window.location.replace("upload.jst"); });
-		}
-	</script>
-		<div id="container">
-			<?%
-				switch (Number($restoreStatus)) {
-					case 2:
-						echo( "<script>errorPrint('Device responded but the format of "+$_FILES['file']['name']+" is not correct.Please use different configuration file. "+($passLockoutAttempt-$failedAttempts)+" attempts left');</script>");
-						break;
-					case 3:
-						echo( "<script>errorPrint('Password Wrong. "+($passLockoutAttempt-$failedAttempts)+" attempts left');</script>");
+                                        success: function(results){
+                                                if (results.reboot == true) {
+                                                        jProgress("Configuration was successfully updated from <?%  echo( $_FILES['file']['name'] );?>. Please wait for reboot", 999999,"Configuration Success");
+                                                        setTimeout(checkForRebooting, 4 * 60 * 1000);
+                                                }
+                                                else if (results.reboot != true) {
+                                                        jAlert("Configuration updated. Failed to Reboot");
+                                                }
+                                        }
+                                });
+                        }
+                }, 100);
+                function checkForRebooting() {
+                        $.ajax({
+                                type: "GET",
+                                url: _baseUrl + "index.jst",
+                                timeout: 10000,
+                                success: function() {
+                                        /* goto login page once the box reboots*/
+                                        window.open (_baseUrl + "index.jst","_self");
+                                        setTimeout(function(){ window.close(); }, 1000);
+                                },
+                                error: function() {
+                                        /* retry after 2 minutes */
+                                        setTimeout(checkForRebooting, 30 * 1000);
+                                }
+                        });
+                }
+                function errorPrint(message) {
+                        jAlert(message,'That did not work',function(){ window.location.replace("upload.jst"); });
+                }
+        </script>
+                <div id="container">
+                        <?%
+                                switch (Number($restoreStatus)) {
+                                        case 2:
+                                                echo( "<script>errorPrint('Device responded but the format of "+$_FILES['file']['name']+" is not correct.Please use different configuration file. "+($passLockoutAttempt-$failedAttempts)+" attempts left');</script>");
+                                                break;
+                                        case 3:
+                                                echo( "<script>errorPrint('Password Wrong. "+($passLockoutAttempt-$failedAttempts)+" attempts left');</script>");
                                                break;
-					case 4:                                 
-						echo( "<script>errorPrint('Device responded but the formatting of "+$_FILES['file']['name']+" is not correct. Restore Failed. File rejected. "+($passLockoutAttempt-$failedAttempts)+" attempts left');</script>");
-						break;
-				}
-			?>
-		</div>
-	</body>
+                                        case 4:
+                                                echo( "<script>errorPrint('Device responded but the formatting of "+$_FILES['file']['name']+" is not correct. Restore Failed. File rejected. "+($passLockoutAttempt-$failedAttempts)+" attempts left');</script>");
+                                                break;
+                                }
+                        ?>
+                </div>
+        </body>
 </html>
-
