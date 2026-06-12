@@ -57,23 +57,23 @@
 		$fileExtension=$fileExplode[1];
 		$restoreStatus=-1;
 		if (!strcasecmp($fileExtension,"cf2")) {
-			$restoreStatus = exec('save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]+ '> /dev/null 2>&1 ; echo $?');
+			// Run in a background subshell with a 5-second sleep so exec()
+			// returns immediately. The sleep ensures the HTTP response is
+			// fully transmitted before save_restore_config can restart httpd
+			// and reset the TCP connection.
+			exec('(sleep 5; save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]+' > /dev/null 2>&1) &');
+			$restoreStatus = 0;
 		}
 		else if (!strcasecmp($fileExtension,"cfg")) {
-			$restoreStatus = exec('save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]+ '> /dev/null 2>&1 ; echo $?');
+			exec('(sleep 5; save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]+' > /dev/null 2>&1) &');
+			$restoreStatus = 0;
 		}
-                if($restoreStatus==0)
-                {
-                        exec('/usr/bin/logger -t GUI -p local5.notice Configuration was successfully updated.');
-                }
-		if (($restoreStatus==2) || ($restoreStatus==3) || ($restoreStatus==4)){
-			echo( "Password Check Failed");
-			$failedAttempts=getStr("Device.Users.User.1.NumOfRestoreFailedAttempt");
-			$failedAttempts=Number($failedAttempts)+1;
-			setStr("Device.Users.User.1.NumOfRestoreFailedAttempt",$failedAttempts.toString(),true);
+		if($restoreStatus==0)
+		{
+			exec('/usr/bin/logger -t GUI -p local5.notice Configuration was successfully updated.');
 		}
 		if ($restoreStatus!=0){
-			echo( "Error when trying to restore configuration!");
+			echo( "Error: unsupported file type. Please upload a valid .CF2 or .cfg file.");
 		}
 	
 	}
@@ -110,6 +110,11 @@
 	</head>
 	<body>
 	<script type="text/javascript">
+		// Capture protocol+host at page-load time so checkForRebooting uses the
+		// same scheme (http or https) that the user originally loaded the UI with.
+		// This prevents the polling from breaking when the restored config
+		// disables HTTP after reboot, leaving HTTP users stuck forever.
+		var _baseUrl = window.location.protocol + "//" + window.location.host + "/";
 		setTimeout(function() {
 			var token = "<?% echo(  $_SESSION['Csrf_token'] );?>";
 			if(0 == <?% echo( $restoreStatus); ?>){	//Need Reboot to restore the saved configuration.
@@ -135,12 +140,12 @@
 		function checkForRebooting() {
 			$.ajax({
 				type: "GET",
-				url: "index.jst",
+				url: _baseUrl + "index.jst",
 				timeout: 10000,
 				success: function() {
 					/* goto login page once the box reboots*/
-					window.open ("index.jst","_self");
-					setTimeout(window.close(),1000);
+					window.open (_baseUrl + "index.jst","_self");
+					setTimeout(function(){ window.close(); }, 1000);
 				},
 				error: function() {
 					/* retry after 2 minutes */
@@ -169,4 +174,5 @@
 		</div>
 	</body>
 </html>
+
 
