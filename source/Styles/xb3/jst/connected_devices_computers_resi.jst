@@ -307,38 +307,20 @@
                 });
     }
     $("input:checked[name='ip']").trigger("click");
-    // activate validation plugin
-        $(".pageForm").validate({
-            rules : {
-                host_name: {
-                        allowed_char: true
-                },
-                staticIPAddress: {
-                        ipv4 : {
-                        depends : function() {
-                                return ("static" == $("input:radio[name=ip]:checked").val());
-                        }
-                    },
-                    required : {
-                        depends : function() {
-                                return ("static" == $("input:radio[name=ip]:checked").val());
-                        }
-                    }
-                }
-                ,mac_address:{
-                        required: true,
-                        mac: true
-                },
-                        comments:{
-                        allowed_char: true
-                }
-            }
-        });
     $(".edit-device").hide();
     $('.device-info').addClass('device-hide');
     $(".btn-cancel").click(function() {
         window.location.href = "connected_devices_computers.jst";
     });
+        $(document).on('click', '.edit-device-btn', function(){
+                if(!(privateDisabled && $(this).hasClass("private"))){
+                                $('.cnt-device-main').hide();
+                                var editButn = $(this).attr('data-edit-target');
+                                if(editButn){
+                                                $(editButn).show();
+                                }
+                }
+        });
     $('.device-name').click(function(){
         if(!(privateDisabled && $(this).hasClass("private"))){
                 $(this).next().toggleClass('device-hide');
@@ -358,15 +340,6 @@
     (
         function(x) {
         //alert(onlineDeviceInstanceArr[i]);
-        var butn = "#btn-" + onlineDeviceInstanceArr[x];
-        var editButn = "#edit-device-" + onlineDeviceInstanceArr[x];
-        //alert(editButn);
-        $(butn).click(function(){
-                if(!(privateDisabled && $(butn).hasClass("private"))){
-                        $('.cnt-device-main').hide();
-                        $(editButn).show();
-                }
-        });
         var submitEditDevice = "#submit_editDevice-" + onlineDeviceInstanceArr[x];
         var macAddr          = "#mac_address-"       + onlineDeviceInstanceArr[x];
         var staticIPAddr     = "#staticIPAddress-"   + onlineDeviceInstanceArr[x];
@@ -391,6 +364,33 @@
         });
         var hostName = onlineHostNameArr[x];
         var macAddress = onlineHostMAC[x];
+        var formId = "#pageForm-" + onlineDeviceInstanceArr[x];
+        $(formId).validate({
+            rules : {
+                host_name: {
+                        allowed_char: true
+                },
+                staticIPAddress: {
+                        ipv4 : {
+                        depends : function() {
+                                return ("static" == $(formId + " input:radio[name=ip]:checked").val());
+                        }
+                    },
+                    required : {
+                        depends : function() {
+                                return ("static" == $(formId + " input:radio[name=ip]:checked").val());
+                        }
+                    }
+                }
+                ,mac_address:{
+                        required: true,
+                        mac: true
+                },
+                        comments:{
+                        allowed_char: true
+                }
+            }
+        });
         $(submitEditDevice).click(function(e){
             e.preventDefault();
             var reseverd_ipAddr = $(staticIPAddr).val();
@@ -428,7 +428,7 @@
                                 var editDevInfo = '{"Comments": " '+ Comments +' ", "hostName": "' + hostName + '", "macAddress": "' + macAddress + '", "reseverd_ipAddr": "' + reseverd_ipAddr + '"}';
             }
             //alert(editDevInfo);
-            if($(".pageForm").valid()){
+            if($(formId).valid()){
                 jProgress('This may take several seconds', 60);
                         $.ajax({
                                 type: "POST",
@@ -455,15 +455,6 @@
   for (var i = 0; i < offlineDeviceNum; i++) {
     (
         function(x) {
-        var butn = "#btn-" + offlineDeviceInstanceArr[x];
-        var editButn = "#offline-edit-device-" + offlineDeviceInstanceArr[x];
-        //alert(editButn);
-        $(butn).click(function(){
-                if(!(privateDisabled && $(butn).hasClass("private"))){
-                        $('.cnt-device-main').hide();
-                        $(editButn).show();
-                }
-        });
         var submitEditDevice = "#submit_editDevice-" + offlineDeviceInstanceArr[x];
         var macAddr          = "#mac_address-"       + offlineDeviceInstanceArr[x];
         var staticIPAddr     = "#staticIPAddress-"   + offlineDeviceInstanceArr[x];
@@ -488,6 +479,33 @@
         });
         var hostName = offlineHostNameArr[x];
         var macAddress = offlineHostMAC[x];
+        var formId = "#pageForm-" + offlineDeviceInstanceArr[x];
+        $(formId).validate({
+            rules : {
+                host_name: {
+                        allowed_char: true
+                },
+                staticIPAddress: {
+                        ipv4 : {
+                        depends : function() {
+                                return ("static" == $(formId + " input:radio[name=ip]:checked").val());
+                        }
+                    },
+                    required : {
+                        depends : function() {
+                                return ("static" == $(formId + " input:radio[name=ip]:checked").val());
+                        }
+                    }
+                }
+                ,mac_address:{
+                        required: true,
+                        mac: true
+                },
+                        comments:{
+                        allowed_char: true
+                }
+            }
+        });
         $(submitEditDevice).click(function(e){
             e.preventDefault();
             var reseverd_ipAddr = $(staticIPAddr).val();
@@ -521,7 +539,7 @@
                                 var editDevInfo = '{"Comments": " '+ Comments +' ", "hostName": "' + hostName + '", "macAddress": "' + macAddress + '", "reseverd_ipAddr": "' + reseverd_ipAddr + '"}';
             }
             //alert(editDevInfo);
-            if($(".pageForm").valid()){
+            if($(formId).valid()){
                 jProgress("This may take several seconds", 60);
                         $.ajax({
                                 type: "POST",
@@ -644,7 +662,7 @@
                         echo('<td headers="connection-type">');
                         echo($onlinePrivateNetworkHost[$x.toString()]['Connection']);
                         echo('</td>');
-                echo("<td headers='edit-button' id='editbutton' ><input type='button' value='Edit' tabindex='0' id='btn-" + $onlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' class=\"btn private\"></input>");
+                        echo("<td headers='edit-button' id='editbutton' ><input type='button' value='Edit' tabindex='0' id='btn-" + $onlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' data-edit-target='#edit-device-" + $onlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' class=\"btn private edit-device-btn\"></input>");
                 echo('</td>');
                 echo('<td headers="disconnect-button">'+$style+'</td>');
                 echo('</tr>');
@@ -718,7 +736,7 @@
             echo('</td>');
             echo('<td headers="offline-device-conncection">');
             echo("<span>"+$offlinePrivateNetworkHost[$x.toString()]['Connection']+"</span>");
-            echo("</td> <td headers='offline-edit-button'><input type='button' value='edit' tabindex='0' id='btn-" + $offlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' class=\"btn private\"></input></td>");
+                        echo("</td> <td headers='offline-edit-button'><input type='button' value='edit' tabindex='0' id='btn-" + $offlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' data-edit-target='#offline-edit-device-" + $offlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' class=\"btn private edit-device-btn\"></input></td>");
             echo('<td headers="offline-device-disconnect-button">'+$style+'</td>');
             echo('</tr>');
         }
