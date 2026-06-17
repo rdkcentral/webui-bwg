@@ -662,7 +662,7 @@
                         echo('<td headers="connection-type">');
                         echo($onlinePrivateNetworkHost[$x.toString()]['Connection']);
                         echo('</td>');
-                        echo("<td headers='edit-button' id='editbutton' ><input type='button' value='Edit' tabindex='0' id='btn-" + $onlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' data-edit-target='#edit-device-" + $onlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' class=\"btn private edit-device-btn\"></input>");
+                        echo("<td headers='edit-button' class='edit-button-cell'><input type='button' value='Edit' tabindex='0' id='btn-" + $onlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' data-edit-target='#edit-device-" + $onlinePrivateNetworkHost[$x.toString()]['instanceID'] + "' class=\"btn private edit-device-btn\"></input>");
                 echo('</td>');
                 echo('<td headers="disconnect-button">'+$style+'</td>');
                 echo('</tr>');
