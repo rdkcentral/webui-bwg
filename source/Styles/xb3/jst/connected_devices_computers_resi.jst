@@ -513,7 +513,7 @@
             var Comments = $(comment).val();
 	    Comments=Comments.replace(/[\r\n]+/gm, "@" );
             if (isDHCP){
-                if($(ipDHCP).val() == 'DHCP'){
+                if($(ipDHCP).val().trim() == 'DHCP'){
                         //this initial value is DHCP, user is going to modify comments
                     var editDevInfo = '{"UpdateComments": "true", "Comments": " '+ Comments +' ", "hostName": "' + hostName + '", "macAddress": "' + macAddress + '", "reseverd_ipAddr": "' + reseverd_ipAddr + '"}';
                 }
