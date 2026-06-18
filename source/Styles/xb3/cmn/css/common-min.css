@@ -1599,7 +1599,7 @@ margin:0 0 0 -35px;
 #rssi-level, #connection-type, #offline-device-conncection{
         width : 12%
 }
-#editbutton{
+.edit-button-cell{
         padding-left : 0px;
 }
 .condev_div{
