@@ -128,9 +128,40 @@ if ("save_config" == $arConfig['target'])
         else if ("save_advance" == $arConfig['sub_target'])
         {
                 $validation = true;
+                $validChannelBandwidth = ["20MHz", "40MHz"]/*p2j-array*/;
+                if ("5" == $radio_band) {
+                        if (strstr($radio_support_modes, "ax") || strstr($radio_support_modes, "be")) {
+                                $validChannelBandwidth = ["20MHz", "40MHz", "80MHz", "160MHz"]/*p2j-array*/;
+                        }
+                        else if (strstr($radio_support_modes, "ac")) {
+                                $validChannelBandwidth = ["20MHz", "40MHz", "80MHz"]/*p2j-array*/;
+                        }
+                }
+                else if ("6" == $radio_band) {
+                        if (strstr($radio_support_modes, "be")) {
+                                $validChannelBandwidth = ["20MHz", "40MHz", "80MHz", "160MHz", "320MHz"]/*p2j-array*/;
+                        }
+                        else {
+                                $validChannelBandwidth = ["20MHz", "40MHz", "80MHz", "160MHz"]/*p2j-array*/;
+                        }
+                }
+
+                $validGuardInterval = ["400nsec", "800nsec", "Auto"]/*p2j-array*/;
+                if (("2.4" == $radio_band || "5" == $radio_band) && strstr($radio_support_modes, "be")) {
+                        $validGuardInterval = ["400nsec", "800nsec", "1600nsec", "3200nsec", "Auto"]/*p2j-array*/;
+                }
+                else if ("6" == $radio_band) {
+                        if (strstr($radio_support_modes, "be")) {
+                                $validGuardInterval = ["800nsec", "1600nsec", "3200nsec", "Auto"]/*p2j-array*/;
+                        }
+                        else {
+                                $validGuardInterval = ["800nsec", "Auto"]/*p2j-array*/;
+                        }
+                }
+
                 if($validation) $validation = isValInArray($arConfig['BG_protect_mode'], ['Auto', 'Disabled']/*p2j-array*/);
-                if($validation) $validation = isValInArray($arConfig['channel_bandwidth'], ['20MHz', '40MHz', '80MHz', '160MHz', '320MHz']/*p2j-array*/);
-                if($validation) $validation = isValInArray($arConfig['guard_interval'], ['400nsec', '800nsec', '1600nsec', '3200nsec', 'Auto']/*p2j-array*/);
+                if($validation) $validation = isValInArray($arConfig['channel_bandwidth'], $validChannelBandwidth);
+                if($validation) $validation = isValInArray($arConfig['guard_interval'], $validGuardInterval);
                 if($validation){
                         setStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFS.Enable", $arConfig['DFS_enabled'], true);
                         setStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFSatBootUp.Enable", $arConfig['DFS_boot_enabled'], true);
