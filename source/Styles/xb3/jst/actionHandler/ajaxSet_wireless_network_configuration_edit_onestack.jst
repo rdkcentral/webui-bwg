@@ -44,7 +44,7 @@ $Mesh_Enable 	= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.E
 $Mesh_State 	= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.State");
 $Mesh_Mode = ($Mesh_Enable == 'true' && $Mesh_State == 'Full')? true : false;
 $frequency_band = getStr("Device.WiFi.Radio."+$r+".OperatingFrequencyBand");
-$radio_band     = (strstr($frequency_band,"6G")) ? "6" : (strstr($frequency_band,"5G")) ? "5" : "2.4";
+$radio_band     = (strstr($frequency_band,"6G")) ? "6" : ((strstr($frequency_band,"5G")) ? "5" : "2.4");
 $radio_support_modes = ("3" == $r) ? $Radio_3_Support_Modes : ((("2" == $r) ? $Radio_2_Support_Modes : $Radio_1_Support_Modes));
 
 // this method for only restart a certain SSID

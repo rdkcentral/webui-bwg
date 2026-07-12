@@ -101,7 +101,7 @@ else
 $i = $arConfig['ssid_number'];
 $r = ("17" == $i) ? "3" : $i;
 $frequency_band = getStr("Device.WiFi.Radio."+$r+".OperatingFrequencyBand");
-$radio_band = (strstr($frequency_band,"6G")) ? "6" : (strstr($frequency_band,"5G")) ? "5" : "2.4";
+$radio_band = (strstr($frequency_band,"6G")) ? "6" : ((strstr($frequency_band,"5G")) ? "5" : "2.4");
 $radio_support_modes = ("3" == $r) ? $Radio_3_Support_Modes : ((("2" == $r) ? $Radio_2_Support_Modes : $Radio_1_Support_Modes));
 
 // this method for only restart a certain SSID
