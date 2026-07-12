@@ -35,6 +35,7 @@ $Radio_2_Enable = getStr("Device.WiFi.Radio.2.Enable");
 $Radio_Enable = ($Radio_1_Enable == 'true' || $Radio_2_Enable == 'true') ? true : false ;
 $Radio_1_Support_Modes = getStr("Device.WiFi.Radio.1.SupportedStandards");
 $Radio_2_Support_Modes = getStr("Device.WiFi.Radio.2.SupportedStandards");
+$Radio_3_Support_Modes = getStr("Device.WiFi.Radio.3.SupportedStandards");
 function validChecksum($WPS_pin){
 	if (preg_match("/^\\d{4}$|^\\d{8}$/", $WPS_pin)!=1) return false;
 	$accum = 0;
@@ -98,6 +99,10 @@ if (array_key_exists('band_steering', $arConfig))
 else
 {
 $i = $arConfig['ssid_number'];
+$r = ("17" == $i) ? "3" : $i;
+$frequency_band = getStr("Device.WiFi.Radio."+$r+".OperatingFrequencyBand");
+$radio_band = (strstr($frequency_band,"6G")) ? "6" : (strstr($frequency_band,"5G")) ? "5" : "2.4";
+$radio_support_modes = ("3" == $r) ? $Radio_3_Support_Modes : (("2" == $r) ? $Radio_2_Support_Modes : $Radio_1_Support_Modes);
 
 // this method for only restart a certain SSID
 
@@ -106,53 +111,53 @@ if ("save_config" == $arConfig['target'])
         if ("save_basic" == $arConfig['sub_target'])
         {
                 if(preg_match('/^100$|^75$|^50$|^25$|^12$/', $arConfig['transmit_power']) == 1){
-                        setStr("Device.WiFi.Radio."+$i+".TransmitPower", $arConfig['transmit_power'], false);
-                        if(!$Mesh_Mode) setStr("Device.WiFi.Radio."+$i+".AutoChannelEnable", $arConfig['channel_automatic'], false);
+                        setStr("Device.WiFi.Radio."+$r+".TransmitPower", $arConfig['transmit_power'], false);
+                        if(!$Mesh_Mode) setStr("Device.WiFi.Radio."+$r+".AutoChannelEnable", $arConfig['channel_automatic'], false);
                 }
                 if ($arConfig['channel_automatic']== "true")
                 {
-                     $logstr = " : webui_event:wifichannel_auto" + " for radio " + $i;
+                     $logstr = " : webui_event:wifichannel_auto" + " for radio " + $r;
                      LogStr($logstr);
                 } else {
-                     $logstr = " : webui_event:wifichannel_manual" + " for radio " + $i;
+                     $logstr = " : webui_event:wifichannel_manual" + " for radio " + $r;
                      LogStr($logstr);
                 }
-                $logstr = " : webui_event:wireless_mode:" + $arConfig['wireless_mode'] + " for radio " + $i;
+                $logstr = " : webui_event:wireless_mode:" + $arConfig['wireless_mode'] + " for radio " + $r;
                 LogStr($logstr);
         }
         else if ("save_advance" == $arConfig['sub_target'])
         {
                 $validation = true;
                 if($validation) $validation = isValInArray($arConfig['BG_protect_mode'], ['Auto', 'Disabled']/*p2j-array*/);
-                if($validation) $validation = isValInArray($arConfig['channel_bandwidth'], ['20MHz', '40MHz', '80MHz', '160MHz']/*p2j-array*/);
-                if($validation) $validation = isValInArray($arConfig['guard_interval'], ['400nsec', '800nsec', 'Auto']/*p2j-array*/);
+                if($validation) $validation = isValInArray($arConfig['channel_bandwidth'], ['20MHz', '40MHz', '80MHz', '160MHz', '320MHz']/*p2j-array*/);
+                if($validation) $validation = isValInArray($arConfig['guard_interval'], ['400nsec', '800nsec', '1600nsec', '3200nsec', 'Auto']/*p2j-array*/);
                 if($validation){
                         setStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFS.Enable", $arConfig['DFS_enabled'], true);
                         setStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFSatBootUp.Enable", $arConfig['DFS_boot_enabled'], true);
-                        setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_CTSProtectionMode", $arConfig['BG_protect_mode'], false);
-                        setStr("Device.WiFi.Radio."+$i+".X_COMCAST_COM_IGMPSnoopingEnable", $arConfig['IGMP_Snooping'], false);
-                        if(!$Mesh_Mode) setStr("Device.WiFi.Radio."+$i+".OperatingChannelBandwidth", $arConfig['channel_bandwidth'], false);
-                        setStr("Device.WiFi.Radio."+$i+".GuardInterval", $arConfig['guard_interval'], false);
-                        setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_ReverseDirectionGrant", $arConfig['reverse_enabled'], false);
-                        setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_AggregationMSDU", $arConfig['MSDU_enabled'], false);
-                        setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_AutoBlockAck", $arConfig['blockACK_enabled'], false);
-                        setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_DeclineBARequest", $arConfig['blockBA_enabled'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_CISCO_COM_CTSProtectionMode", $arConfig['BG_protect_mode'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_COMCAST_COM_IGMPSnoopingEnable", $arConfig['IGMP_Snooping'], false);
+                        if(!$Mesh_Mode) setStr("Device.WiFi.Radio."+$r+".OperatingChannelBandwidth", $arConfig['channel_bandwidth'], false);
+                        setStr("Device.WiFi.Radio."+$r+".GuardInterval", $arConfig['guard_interval'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_CISCO_COM_ReverseDirectionGrant", $arConfig['reverse_enabled'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_CISCO_COM_AggregationMSDU", $arConfig['MSDU_enabled'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_CISCO_COM_AutoBlockAck", $arConfig['blockACK_enabled'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_CISCO_COM_DeclineBARequest", $arConfig['blockBA_enabled'], false);
 
                         //DFS_Support1 1-supported 0-not supported
-                        if (("2" == $i) && (getStr("Device.WiFi.Radio."+$i+".X_COMCAST_COM_DFSSupport") == 1)){
-                                setStr("Device.WiFi.Radio."+$i+".X_COMCAST_COM_DFSEnable", $arConfig['DFS_Selection'], false);
+                        if ((("2" == $r) && (getStr("Device.WiFi.Radio."+$r+".X_COMCAST_COM_DFSSupport") == 1))){
+                                setStr("Device.WiFi.Radio."+$r+".X_COMCAST_COM_DFSEnable", $arConfig['DFS_Selection'], false);
                         }
-                        setStr("Device.WiFi.Radio."+$i+".X_COMCAST-COM_DCSEnable", $arConfig['DCS_Selection'], false);
-                        setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_HTTxStream", $arConfig['HT_TxStream'], false);
-                        setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_HTRxStream", $arConfig['HT_RxStream'], false);
-                        setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_STBCEnable", $arConfig['STBC_enabled'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_COMCAST-COM_DCSEnable", $arConfig['DCS_Selection'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_CISCO_COM_HTTxStream", $arConfig['HT_TxStream'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_CISCO_COM_HTRxStream", $arConfig['HT_RxStream'], false);
+                        setStr("Device.WiFi.Radio."+$r+".X_CISCO_COM_STBCEnable", $arConfig['STBC_enabled'], false);
                         setStr("Device.WiFi.AccessPoint."+$i+".UAPSDEnable", $arConfig['WMM_power_save'], true);
                 }
-                $logstr = " : webui_event:wifichannelbandwidth:" + $arConfig['channel_bandwidth'] + " for radio " + $i;
+                $logstr = " : webui_event:wifichannelbandwidth:" + $arConfig['channel_bandwidth'] + " for radio " + $r;
                 LogStr($logstr);
         }
         $validation = true;
-        $PossibleChannels = getStr("Device.WiFi.Radio."+$i+".PossibleChannels");
+        $PossibleChannels = getStr("Device.WiFi.Radio."+$r+".PossibleChannels");
         if(strpos($PossibleChannels, '-') !== false){//1-11
                 $PossibleChannelsRange = explode('-', $PossibleChannels);
                 $PossibleChannelsArr = range($PossibleChannelsRange[0],$PossibleChannelsRange[1]);
@@ -162,28 +167,56 @@ if ("save_config" == $arConfig['target'])
                 $PossibleChannelsArr = explode(',', $PossibleChannels);
         }
 
-        if (strstr($Radio_1_Support_Modes, "ax") && strstr($Radio_2_Support_Modes, "ax"))
+        if ("2.4" == $radio_band)
         {
-                if($validation) $validation = (($i==1 && isValInArray($arConfig['wireless_mode'], ["g,n", "g,n,ax"]/*p2j-array*/)) || ($i==2 && isValInArray($arConfig['wireless_mode'], ["a,n,ac", "a,n,ac,ax"]/*p2j-array*/)));
+                if (strstr($radio_support_modes, "be")) {
+                        if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["g,n", "g,n,ax", "g,n,ax,be"]/*p2j-array*/);
+                }
+                else if (strstr($radio_support_modes, "ax")) {
+                        if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["g,n", "g,n,ax"]/*p2j-array*/);
+                }
+                else {
+                        if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["n", "g,n", "b,g,n"]/*p2j-array*/);
+                }
+        }
+        else if ("5" == $radio_band)
+        {
+                if (strstr($radio_support_modes, "be")) {
+                        if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["a,n", "a,n,ac", "a,n,ac,ax", "a,n,ac,ax,be"]/*p2j-array*/);
+                }
+                else if (strstr($radio_support_modes, "ax")) {
+                        if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["a,n", "a,n,ac", "a,n,ac,ax"]/*p2j-array*/);
+                }
+                else if (strstr($radio_support_modes, "ac")) {
+                        if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["n", "a,n", "ac", "n,ac", "a,n,ac"]/*p2j-array*/);
+                }
+                else {
+                        if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["n", "a,n"]/*p2j-array*/);
+                }
         }
         else
         {
-                if($validation) $validation = (($i==1 && isValInArray($arConfig['wireless_mode'], ["n", "g,n", "b,g,n"]/*p2j-array*/)) || ($i==2 && isValInArray($arConfig['wireless_mode'], ["n", "a,n", "ac", "n,ac", "a,n,ac"]/*p2j-array*/)));
+                if (strstr($radio_support_modes, "be")) {
+                        if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["ax", "ax,be"]/*p2j-array*/);
+                }
+                else {
+                        if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["ax"]/*p2j-array*/);
+                }
         }
 
         if ($validation && "false"==$arConfig['channel_automatic']) $validation = isValInArray($arConfig['channel_number'], $PossibleChannelsArr);
-        if ($validation && ("2" != $i) && ("20MHz" != $arConfig['channel_bandwidth'])) $validation = isValInArray($arConfig['ext_channel'], ['AboveControlChannel', 'BelowControlChannel', 'Auto']/*p2j-array*/);
+        if ($validation && ("2.4" == $radio_band) && ("20MHz" != $arConfig['channel_bandwidth'])) $validation = isValInArray($arConfig['ext_channel'], ['AboveControlChannel', 'BelowControlChannel', 'Auto']/*p2j-array*/);
         if($validation){
                 //redio standards and green mode  must set together
-                setStr("Device.WiFi.Radio."+$i+".OperatingStandards", $arConfig['wireless_mode'], false);
-                setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_11nGreenfieldEnabled", $arConfig['operation_mode'], false);
+                setStr("Device.WiFi.Radio."+$r+".OperatingStandards", $arConfig['wireless_mode'], false);
+                setStr("Device.WiFi.Radio."+$r+".X_CISCO_COM_11nGreenfieldEnabled", $arConfig['operation_mode'], false);
 
                 //primary channel and 2nd channel must set together
                 if ("false"==$arConfig['channel_automatic']){
-                        if(!$Mesh_Mode) setStr("Device.WiFi.Radio."+$i+".Channel", $arConfig['channel_number'], false);
+                        if(!$Mesh_Mode) setStr("Device.WiFi.Radio."+$r+".Channel", $arConfig['channel_number'], false);
                 }
-                if (("2" != $i) && ("20MHz" != $arConfig['channel_bandwidth'])){
-                        setStr("Device.WiFi.Radio."+$i+".ExtensionChannel", $arConfig['ext_channel'], false);
+                if (("2.4" == $radio_band) && ("20MHz" != $arConfig['channel_bandwidth'])){
+                        setStr("Device.WiFi.Radio."+$r+".ExtensionChannel", $arConfig['ext_channel'], false);
                 }
 
                 //apply once
@@ -231,7 +264,7 @@ else if ("save_enable" == $arConfig['target'])
                         }
                 }
                 */
-                setStr("Device.WiFi.Radio."+$i+".Enable", $arConfig['radio_enable'], false);
+                setStr("Device.WiFi.Radio."+$r+".Enable", $arConfig['radio_enable'], false);
                 setStr("Device.WiFi.ApplyRadioSettings", "true", true);
                 setStr("Device.WiFi.ApplyAccessPointSettings", "true", true);
                 // setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_ApplySetting", "true", true);
