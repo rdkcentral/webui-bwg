@@ -144,7 +144,17 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 				}
 				if ($validation && "false"==$arConfig['channel_automatic']) $validation = isValInArray($arConfig['channel_number'], $PossibleChannelsArr);
 			}
-			if($validation && $arConfig['security'] != 'None') $validation = (preg_match("/^[ -~]{8,63}$|^[a-fA-F0-9]{64}$/i", $arConfig['network_password'])==1);
+			if ($validation && $arConfig['security'] != 'None' && $arConfig['security'] != 'WPA2_Enterprise' && $arConfig['security'] != 'WPA_WPA2_Enterprise') {
+				if ($arConfig['security'] == 'WEP_64') {
+					$validation = (preg_match("/^[ -~]{5}$|^[a-fA-F0-9]{10}$/i", $arConfig['network_password']) == 1);
+				}
+				else if ($arConfig['security'] == 'WEP_128') {
+					$validation = (preg_match("/^[ -~]{13}$|^[a-fA-F0-9]{26}$/i", $arConfig['network_password']) == 1);
+				}
+				else {
+					$validation = (preg_match("/^[ -~]{8,63}$|^[a-fA-F0-9]{64}$/i", $arConfig['network_password']) == 1);
+				}
+			}
 			if ($WifiPersonalizationEnable === "true") {
 				$DefaultKeyPassphrase = getStr("Device.WiFi.AccessPoint."+$i+".Security.X_COMCAST-COM_DefaultKeyPassphrase");
 				if($validation && ($DefaultKeyPassphrase == $arConfig['network_password']) && ($arConfig['security'] != 'None' && $arConfig['security'] != 'WPA2_Enterprise' && $arConfig['security'] != 'WPA_WPA2_Enterprise')) {
