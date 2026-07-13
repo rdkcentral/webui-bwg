@@ -77,6 +77,30 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 		}
 		//Remove XHS and XfinityWiFi SSID information pages from MSO and CUSADMIN GUIs (Commercial products)
 		else $validation = false;
+			$WPA3_enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WPA3_Personal_Transition.Enable");
+			$WPA3_compatibility_enable = getStr("Device.WiFi.WPA3_Personal_Compatibility");
+			// Build security allowlist based on SSID and WPA3 capabilities, matching UI options
+			if ("17" == $i) {
+				// 6GHz: only WPA3 modes
+				if ($WPA3_enable == "true" && $WPA3_compatibility_enable == "true") {
+					$validSecurityModes = ['WPA3-Personal Compatibility', 'WPA3-Personal Only']/*p2j-array*/;
+				} else {
+					$validSecurityModes = ['WPA3-Personal Only']/*p2j-array*/;
+				}
+			} else {
+				// 2.4/5GHz: depends on WPA3 flags
+				if ($WPA3_enable == "true" && $WPA3_compatibility_enable == "true") {
+					$validSecurityModes = ['None', 'WPA3-Personal Compatibility', 'WPA3-Personal Transition', 'WPA3-Personal Only', 'WPA2_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+				} else if ($WPA3_compatibility_enable == "true") {
+					$validSecurityModes = ['None', 'WPA3-Personal Compatibility', 'WPA2_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+				} else if ($WPA3_enable == "true") {
+					$validSecurityModes = ['None', 'WPA3-Personal Transition', 'WPA3-Personal Only', 'WPA2_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+				} else {
+					$validSecurityModes = ['None', 'WPA2_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+				}
+			}
+			if($validation) $validation = isValInArray($arConfig['security'], $validSecurityModes);
+			$securityRequiresPassword = !isValInArray($arConfig['security'], ['None', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/);
 		if ("mso" != $thisUser){
 			$validChannelBandwidth = ["20MHz", "40MHz"]/*p2j-array*/;
 			if ("5" == $radio_band) {
@@ -144,7 +168,7 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 				}
 				if ($validation && "false"==$arConfig['channel_automatic']) $validation = isValInArray($arConfig['channel_number'], $PossibleChannelsArr);
 			}
-			if ($validation && $arConfig['security'] != 'None' && $arConfig['security'] != 'WPA2_Enterprise' && $arConfig['security'] != 'WPA_WPA2_Enterprise') {
+			if ($validation && $securityRequiresPassword) {
 				if ($arConfig['security'] == 'WEP_64') {
 					$validation = (preg_match("/^[ -~]{5}$|^[a-fA-F0-9]{10}$/i", $arConfig['network_password']) == 1);
 				}
@@ -157,7 +181,7 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 			}
 			if ($WifiPersonalizationEnable === "true") {
 				$DefaultKeyPassphrase = getStr("Device.WiFi.AccessPoint."+$i+".Security.X_COMCAST-COM_DefaultKeyPassphrase");
-				if($validation && ($DefaultKeyPassphrase == $arConfig['network_password']) && ($arConfig['security'] != 'None' && $arConfig['security'] != 'WPA2_Enterprise' && $arConfig['security'] != 'WPA_WPA2_Enterprise')) {
+				if($validation && ($DefaultKeyPassphrase == $arConfig['network_password']) && $securityRequiresPassword) {
 					$validation = false;
 					$response_message = 'Please change Network Password !';
 				}
@@ -165,7 +189,7 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 		}
 		if ($WifiPersonalizationEnable === "true") {
 			$DefaultKeyPassphrase = getStr("Device.WiFi.AccessPoint."+$i+".Security.X_COMCAST-COM_DefaultKeyPassphrase");
-			if($validation && ($DefaultKeyPassphrase == $arConfig['network_password']) && ($arConfig['security'] != 'None' && $arConfig['security'] != 'WPA2_Enterprise' && $arConfig['security'] != 'WPA_WPA2_Enterprise')) {
+			if($validation && ($DefaultKeyPassphrase == $arConfig['network_password']) && $securityRequiresPassword) {
 				$validation = false;
 				$response_message = 'Please change Network Password !';
 			}
