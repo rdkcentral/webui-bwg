@@ -77,7 +77,7 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 		//Remove XHS and XfinityWiFi SSID information pages from MSO and CUSADMIN GUIs (Commercial products)
 		else $validation = false;
 		if ("mso" != $thisUser){
-			if($validation) $validation = isValInArray($arConfig['channel_bandwidth'], ['20MHz', '40MHz', '80MHz', '160MHz', '320MHz']/*p2j-array*/);
+			if($validation) $validation = isValInArray($arConfig['channel_bandwidth'], ['20MHz', '40MHz', '80MHz', '160MHz']/*p2j-array*/) || ($radio_band=="6" && $arConfig['channel_bandwidth']=="320MHz");
 			if (strstr($Radio_1_Support_Modes, "ax") && strstr($Radio_2_Support_Modes, "ax") && strstr($Radio_3_Support_Modes, "ax"))
 			{
 				if($validation) $validation = (($radio_band=="2.4" && isValInArray($arConfig['wireless_mode'], ["g,n", "g,n,ax"]/*p2j-array*/)) || ($radio_band=="5" && isValInArray($arConfig['wireless_mode'], ["a,n,ac", "a,n,ac,ax"]/*p2j-array*/)) || ($radio_band=="6" && isValInArray($arConfig['wireless_mode'], ["ax","ax,be"]/*p2j-array*/)));
