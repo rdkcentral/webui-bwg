@@ -287,7 +287,7 @@ else if ("wps_ssid" == $arConfig['target'])
 }
 else if ("save_enable" == $arConfig['target'])
 {
-        $r = ("17" == $i) ? "3" : $i;
+        $r = ("17" == $i) ? "3" : (2 - intval($i)%2);
         if ("radio_enable" == $arConfig['sub_target']) {
                 // setStr("Device.WiFi.SSID.$i.Enable", $arConfig['radio_enable'], true);
                 // setStr("Device.WiFi.Radio.$i.X_CISCO_COM_ApplySetting", "true", true);               // only primary SSID
