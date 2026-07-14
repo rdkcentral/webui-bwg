@@ -554,6 +554,14 @@ $(document).ready(function() {
 		disable_ssid_options('private_wifi', 3);
 		disable_ssid_options('public_wifi', 3);
 	}
+	// check if the LowerLayers radio 6GHz is enabled. if disable, the user shouldn't be able to enable the SSID.
+	<?% if($OperatingChannelBandwidth == "6GHz")
+	{?>
+	if(!G_radio_enable3){
+		disable_ssid_options('private_wifi', 4);
+	}
+	<?%
+	}?>
 	//Disable all the MAC filter options in user admin mode if bridge mode is enabled
 	if (isBridge != 'router' || $ForceDisable == 'true') {
 		if(isBridge == "full-bridge-static" || $ForceDisable == 'true'){
@@ -572,14 +580,6 @@ $(document).ready(function() {
 		$('.div_private_wifi .btn').click(function(e) {
 			e.preventDefault();
 		});
-	// check if the LowerLayers radio 6GHz is enabled. if disable, the user shouldn't be able to enable the SSID.
-	<?%if($OperatingChannelBandwidth == "6GHz")
-	{?>
-		if(!G_radio_enable3){
-		disable_ssid_options('private_wifi', 4);
-	}
-	<?%
-	}?>
 		if ("mso" != "<?% echo( $_SESSION["loginuser"]); ?>" || $ForceDisable == 'true'){
 			$("#mac_admin").addClass('disabled');
 			$("#mac_ssid").addClass('disabled').prop('disabled',true);
@@ -990,7 +990,7 @@ function set_config(jsConfig)
 	jProgress('This may take several seconds...', 180);
 	$.ajax({
 		type: "POST",
-		url: "actionHandler/ajaxSet_wireless_network_configuration_onestack.jst",
+		url: "actionHandler/ajaxSet_wireless_network_configuration.jst",
 		data: { configInfo: jsConfig,csrfp_token: token },
 		success: function(msg) {
 			if(isIE()){
