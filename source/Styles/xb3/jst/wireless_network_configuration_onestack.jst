@@ -36,6 +36,7 @@
 <?%
 $ForceDisable = getStr("Device.WiFi.X_RDK-CENTRAL_COM_ForceDisable");
 $Mesh_Enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.Enable");
+$HCM_Enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MeshWifiOptimization.Mode");
 $Mesh_State = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.State");
 $Mesh_Mode = ($Mesh_Enable == 'true' && $Mesh_State == 'Full')?'true':'false';
 $OperatingChannelBandwidth="";
@@ -492,7 +493,8 @@ $(document).ready(function() {
     $ForceDisable = '<?% echo( $ForceDisable); ?>';
     $Mesh_Mode = '<?% echo( $Mesh_Mode); ?>';
     var MeshEnable='<?% echo( $Mesh_Enable); ?>';
-    if(MeshEnable=="true"){
+	var HCMEnable= '<?% echo( $HCM_Enable); ?>';
+	if(MeshEnable=="true" || HCMEnable == 'Enable'){
     $('[name="channel_bandwidth"]').prop("disabled", true);
     }else{
 	$('[name="channel_bandwidth"]').prop("disabled", false);
@@ -644,7 +646,7 @@ $(document).ready(function() {
 	}).trigger("change");
 
     $("[name='channel']").change(function() {
-		if($("#channel_automatic").is(":checked") || (MeshEnable=="true")) {
+		if($("#channel_automatic").is(":checked") || (MeshEnable=="true") || (HCMEnable == 'Enable')) {
 			document.getElementById('channel_number').disabled = true;
 			show_extch(0);
 			$("#channel_number").hide();
@@ -739,7 +741,7 @@ $(document).ready(function() {
 	}).trigger("change");
 	
 	$("[name='channel_bandwidth']").change(function() {
-		if ($("#channel_bandwidth20").prop("checked") || (MeshEnable=="true")) {
+		if ($("#channel_bandwidth20").prop("checked") || (MeshEnable=="true") || (HCMEnable == 'Enable')) {
 			$('div [id*="Ext"]').prop("disabled", true);
 		}
 		else {
@@ -951,7 +953,7 @@ $(document).ready(function() {
 	        });
 	}
         //for Mesh WiFi integration
-	if($Mesh_Mode == 'true' || $ForceDisable == 'true'){
+	if($Mesh_Mode == 'true' || $ForceDisable == 'true' || HCMEnable == 'Enable'){
 		//disable >> Channel Selection:, Channel:, Channel Bandwidth:
 		$('#channel_automatic, #channel_manual, #channel_automatic1, #channel_manual1, #channel_number, #channel_number1, #auto_channel_number, #auto_channel_number1, input[name=channel_bandwidth], input[name=channel_bandwidth1]').prop("disabled", true);
 		<?%if($OperatingChannelBandwidth == "6GHz")
