@@ -1229,7 +1229,6 @@ function setResetInfo(info) {
 				<?% } else { ?>
 					<option value="WPA2_PSK_AES" title="WPA requires an 8-63 ASCII character password." <?% if ("WPA2_PSK_AES"==$security) echo( "selected");?> >WPA2-PSK (AES) (Recommended)</option>
 				<?% } ?>
-				<option value="WPA2_PSK_TKIP" title="WPA requires an 8-63 ASCII character or a 64 hex character password. Hex means only the following characters can be used: ABCDEF0123456789." <?% if ("WPA2_PSK_TKIP"==$security) echo( "selected");?> >WPA2-PSK (TKIP)</option>
 				<?%
 				if("WPA2_Enterprise"==$security){
 					echo( '<option value="WPA2_Enterprise" title="WPA2-Enterprise uses a RADIUS servers for authentication purposes." selected >WPA2-Enterprise</option>');
