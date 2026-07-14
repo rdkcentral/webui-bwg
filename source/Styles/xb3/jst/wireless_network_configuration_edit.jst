@@ -489,7 +489,6 @@ $(document).ready(function() {
 	$("[name='channel_bandwidth1']").change(function() {
 		//enable all channel first
 		$("#channel_number option").prop("disabled", false);
-		var selectedChannel = $("#channel_number").val();
 		if (!$("#channel_bandwidth201").prop("checked")) {
 			//40MHz
 			if ($("#channel_bandwidth1").prop("checked")) {
