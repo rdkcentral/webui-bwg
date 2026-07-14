@@ -988,7 +988,7 @@ function set_config(jsConfig)
 	jProgress('This may take several seconds...', 180);
 	$.ajax({
 		type: "POST",
-		url: "actionHandler/ajaxSet_wireless_network_configuration.jst",
+		url: "actionHandler/ajaxSet_wireless_network_configuration_onestack.jst",
 		data: { configInfo: jsConfig,csrfp_token: token },
 		success: function(msg) {
 			if(isIE()){
