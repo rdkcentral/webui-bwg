@@ -669,7 +669,7 @@ $(document).ready(function() {
 					checkAndSetChannelNumber($disableChannelList,'40');
 				}
 				else{	//AboveControlChannel or Auto
-					$disableChannelList = [116, 140, 144, 165 ];
+					$disableChannelList = [40, 48, 56, 64, 104, 112, 116, 136, 140, 144, 153, 161, 165 ];
 					checkAndSetChannelNumber($disableChannelList,'36');
 				}
 			}
@@ -931,6 +931,11 @@ function init_form()
 	// Warning for DFS channel (52-140)
 	$("#channel_number").change(function(event, data){
 		if (data && data.silent) {
+			return;
+		}
+
+		// DFS warning applies only to 5GHz (channels 52-140)
+		if ("5" != radio_band) {
 			return;
 		}
 
