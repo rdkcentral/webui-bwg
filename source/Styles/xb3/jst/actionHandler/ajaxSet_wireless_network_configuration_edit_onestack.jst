@@ -76,11 +76,13 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 			}
 		}
 		//Remove XHS and XfinityWiFi SSID information pages from MSO and CUSADMIN GUIs (Commercial products)
-		else $validation = false;
-			$WPA3_enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WPA3_Personal_Transition.Enable");
-			$WPA3_compatibility_enable = getStr("Device.WiFi.WPA3_Personal_Compatibility");
-			// Build security allowlist based on SSID and WPA3 capabilities, matching UI options
-			if ("17" == $i) {
+		else {
+			$validation = false;
+		}
+		$WPA3_enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WPA3_Personal_Transition.Enable");
+		$WPA3_compatibility_enable = getStr("Device.WiFi.WPA3_Personal_Compatibility");
+		// Build security allowlist based on SSID and WPA3 capabilities, matching UI options
+		if ("17" == $i) {
 				// 6GHz: only WPA3 modes
 				if ($WPA3_enable == "true" && $WPA3_compatibility_enable == "true") {
 					$validSecurityModes = ['WPA3-Personal Compatibility', 'WPA3-Personal Only']/*p2j-array*/;

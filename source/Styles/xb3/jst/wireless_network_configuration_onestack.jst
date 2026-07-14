@@ -783,6 +783,8 @@ $(document).ready(function() {
 				//$("#channel_number1").find("[value='116'],[value='140']").prop("disabled", true).prop("selected", false);
 			}
 
+			var selectedChannel1 = $("#channel_number1").val();
+
 			if ($("#channel_number1 option:selected").length === 0 || $("#channel_number1 option:selected").prop("disabled")) {
 				var firstEnabled1 = $("#channel_number1 option:not(:disabled):first").val();
 				if (firstEnabled1) $("#channel_number1").val(firstEnabled1);

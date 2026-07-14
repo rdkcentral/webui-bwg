@@ -519,9 +519,7 @@ $(document).ready(function() {
 			}
 		}
 
-		if (selectedChannel !== $("#channel_number").val()) {
-			$("#channel_number").trigger("change");
-		}
+		// Avoid triggering #channel_number change here to prevent DFS confirmation on programmatic channel adjustments.
 	}).trigger("change");
     $("#wireless_network_switch").change(function() {
 		if ($(this).radioswitch("getState").on === false) {
