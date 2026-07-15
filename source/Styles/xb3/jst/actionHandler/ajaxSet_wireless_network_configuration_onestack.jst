@@ -34,6 +34,7 @@ $Radio_1_Enable = getStr("Device.WiFi.Radio.1.Enable");
 $Radio_2_Enable = getStr("Device.WiFi.Radio.2.Enable");
 $Radio_3_Enable = getStr("Device.WiFi.Radio.3.Enable");
 $Radio_Enable = ($Radio_1_Enable == 'true' || $Radio_2_Enable == 'true' || $Radio_3_Enable == 'true') ? true : false ;
+$WPS_Radio_Enable = ($Radio_1_Enable == 'true' || $Radio_2_Enable == 'true') ? true : false ;
 $Radio_1_Support_Modes = getStr("Device.WiFi.Radio.1.SupportedStandards");
 $Radio_2_Support_Modes = getStr("Device.WiFi.Radio.2.SupportedStandards");
 $Radio_3_Support_Modes = getStr("Device.WiFi.Radio.3.SupportedStandards");
@@ -305,7 +306,7 @@ else if ("save_enable" == $arConfig['target'])
                 // setStr("Device.WiFi.Radio."+$i+".X_CISCO_COM_ApplySetting", "true", true);
                 // MiniApplySSID($i);   // if enable or disable this radio, no need to assign an SSID
         }
-        else if ("wps_enabled" == $arConfig['sub_target'] && $Radio_Enable) {
+        else if ("wps_enabled" == $arConfig['sub_target'] && $WPS_Radio_Enable) {
                 //enable or disable WPS in all SSID, GUI ensure that only change will be commit to backend
                 //$ssids = explode(",", getInstanceIds("Device.WiFi.SSID."));
                 //only enable wps in private 2.4GHz and private 5GHz ssids
@@ -325,7 +326,7 @@ else if ("save_enable" == $arConfig['target'])
                     LogStr(" : webui_event:WPS_PUSH_disabled");
                 }
         }
-        else if ("wps_method" == $arConfig['sub_target'] && $Radio_Enable) {
+        else if ("wps_method" == $arConfig['sub_target'] && $WPS_Radio_Enable) {
                 //$ssids = explode(",", getInstanceIds("Device.WiFi.SSID."));
                 //only enable wps in private 2.4GHz and private 5GHz ssids
                 $ssids = [ 1 , 2 ]/*p2j-array*/;
@@ -347,7 +348,7 @@ else if ("save_enable" == $arConfig['target'])
 
         echo( htmlspecialchars($jsConfig, ENT_NOQUOTES, 'UTF-8'));
 }
-else if ("pair_client" == $arConfig['target'] && $Radio_Enable)
+else if ("pair_client" == $arConfig['target'] && $WPS_Radio_Enable)
 {
         // $pair_num = getStr("Device.WiFi.AccessPoint.$i.AssociatedDeviceNumberOfEntries");
         // $pair_res = "fail";
