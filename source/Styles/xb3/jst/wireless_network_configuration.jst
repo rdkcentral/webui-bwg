@@ -36,6 +36,7 @@ $ForceDisable = getStr("Device.WiFi.X_RDK-CENTRAL_COM_ForceDisable");
 
 <?%
 $modelName= getStr("Device.DeviceInfo.ModelName");
+$axEnable = getStr("Device.WiFi.2G80211axEnable");
 /*********************get WiFi parameters***************************/
 $wifi_param = {
 	"feq_band" 			: "Device.WiFi.Radio.1.OperatingFrequencyBand",
@@ -1426,9 +1427,11 @@ function saveBandSteeringSettings()
 	<div class="form-row">
 		<label for="wireless_mode">Mode:</label>
 		<select name="wireless_mode" id="wireless_mode">
-		<?% if (strstr($support_mode, "ax")){ ?>
+		<?% if ((strstr($support_mode, "ax")) && ($axEnable == "true")){ ?>
 			<option value="g,n" 	<?% if ("g,n" == $wireless_mode) echo( 'selected="selected"');?> >802.11 g/n</option>
 			<option value="g,n,ax" 	<?% if ("g,n,ax" == $wireless_mode) echo( 'selected="selected"');?> >802.11 g/n/ax</option>
+		<?% } else if ((strstr($support_mode, "ax")) && ($axEnable == "false")){ ?>
+			<option value="g,n" 	<?% if ("g,n" == $wireless_mode) echo( 'selected="selected"');?> >802.11 g/n</option>
 		<?% }
 		else{ ?>
 			<option value="n"  	<?% if ("n" == $wireless_mode) echo( 'selected="selected"');?> >802.11 n</option>
