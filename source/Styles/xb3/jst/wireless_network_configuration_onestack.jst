@@ -793,7 +793,9 @@ $(document).ready(function() {
 			}
 
 			if (selectedChannel1 !== $("#channel_number1").val()) {
-				$("#channel_number1").trigger("change", {silent:true});
+				window.setTimeout(function() {
+					$("#channel_number1").trigger("change", {silent:true});
+				}, 0);
 			}
 		}).trigger("change");
 		$("[name='channel_bandwidth']").change(function() {
