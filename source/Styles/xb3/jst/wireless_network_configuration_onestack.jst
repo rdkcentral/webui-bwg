@@ -554,7 +554,7 @@ $(document).ready(function() {
 		disable_ssid_options('private_wifi', 3);
 		disable_ssid_options('public_wifi', 3);
 	}
-	// check if the LowerLayers radio 6GHz is enabled. if disable, the user shouldn't be able to enable the SSID.
+	// check if the LowerLayers radio 6GHz is enabled. If disabled, the user shouldn't be able to enable the SSID.
 	<?% if($OperatingChannelBandwidth == "6GHz")
 	{?>
 	if(!G_radio_enable3){
