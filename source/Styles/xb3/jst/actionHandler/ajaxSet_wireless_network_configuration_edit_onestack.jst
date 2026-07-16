@@ -351,5 +351,7 @@ if($response_message!='') {
 	$response.error_message = $response_message;
 	echo( htmlspecialchars(json_encode($response), ENT_NOQUOTES, 'UTF-8'));
 }
-else echo( htmlspecialchars($jsConfig, ENT_NOQUOTES, 'UTF-8'));
+else {
+	echo( htmlspecialchars(json_encode('success'), ENT_NOQUOTES, 'UTF-8'));
+}
 ?>
