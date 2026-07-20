@@ -85,18 +85,18 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 		if ("17" == $i) {
 			// 6GHz: only WPA3 modes
 			if ($WPA3_enable == "true" && $WPA3_compatibility_enable == "true") {
-				$validSecurityModes = ['WPA3-Personal Compatibility', 'WPA3-Personal Only']/*p2j-array*/;
+				$validSecurityModes = ['WPA3-Personal Compatibility', 'WPA3-Personal Compatibility AES_GCMP', 'WPA3-Personal Only', 'WPA3-Personal Only AES_GCMP']/*p2j-array*/;
 			} else {
-				$validSecurityModes = ['WPA3-Personal Only']/*p2j-array*/;
+				$validSecurityModes = ['WPA3-Personal Only', 'WPA3-Personal Only AES_GCMP']/*p2j-array*/;
 			}
 		} else {
 			// 2.4/5GHz: include legacy modes exposed via the "Show More Security Mode Options" dialog
 			if ($WPA3_enable == "true" && $WPA3_compatibility_enable == "true") {
-				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA3-Personal Compatibility', 'WPA3-Personal Transition', 'WPA3-Personal Only', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA3-Personal Compatibility', 'WPA3-Personal Compatibility AES_GCMP', 'WPA3-Personal Transition', 'WPA3-Personal Transition AES_GCMP', 'WPA3-Personal Only', 'WPA3-Personal Only AES_GCMP', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
 			} else if ($WPA3_compatibility_enable == "true") {
-				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA3-Personal Compatibility', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA3-Personal Compatibility', 'WPA3-Personal Compatibility AES_GCMP', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
 			} else if ($WPA3_enable == "true") {
-				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA3-Personal Transition', 'WPA3-Personal Only', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA3-Personal Transition', 'WPA3-Personal Transition AES_GCMP', 'WPA3-Personal Only', 'WPA3-Personal Only AES_GCMP', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
 			} else {
 				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
 			}
@@ -265,15 +265,27 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 					break;
 				case "WPA3-Personal Only":
 					$encrypt_mode   = "WPA3-Personal";
-					$encrypt_method = "AES";
+					$encrypt_method = ("17" == $i) ? "AES+GCMP" : "AES";
+					break;
+				case "WPA3-Personal Only AES_GCMP":
+					$encrypt_mode   = "WPA3-Personal";
+					$encrypt_method = "AES+GCMP";
 					break;
 				case "WPA3-Personal Transition":
 					$encrypt_mode   = "WPA3-Personal-Transition";
-					$encrypt_method = "AES";
+					$encrypt_method = ("17" == $i) ? "AES+GCMP" : "AES";
+					break;
+				case "WPA3-Personal Transition AES_GCMP":
+					$encrypt_mode   = "WPA3-Personal-Transition";
+					$encrypt_method = "AES+GCMP";
 					break;
 				case "WPA3-Personal Compatibility":
 					$encrypt_mode   = "WPA3-Personal-Compatibility";
-					$encrypt_method = "AES";
+					$encrypt_method = ("17" == $i) ? "AES+GCMP" : "AES";
+					break;
+				case "WPA3-Personal Compatibility AES_GCMP":
+					$encrypt_mode   = "WPA3-Personal-Compatibility";
+					$encrypt_method = "AES+GCMP";
 					break;
 				default:
 					$encrypt_mode   = "None";

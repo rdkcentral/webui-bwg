@@ -185,56 +185,19 @@ if (!in_array($id, $valid_ids)) {
 
 if ("1-11"==$possible_channels)
 $possible_channels = "1,2,3,4,5,6,7,8,9,10,11";
-$security = "None";
+$security = security_mode_map($encrypt_mode, $encrypt_method);
 if ("WEP-64" == $encrypt_mode){
-		$security = "WEP_64";
-		$network_password = $network_pass_64;
+	$network_password = $network_pass_64;
 }
 else if ("WEP-128" == $encrypt_mode){
-		$security = "WEP_128";
-		$network_password = $network_pass_128;
-}
-else if ("WPA-Personal" == $encrypt_mode){
-	if ("TKIP" == $encrypt_method){
-		$security = "WPA_PSK_TKIP";
-	}
-	else{
-		$security = "WPA_PSK_AES";
-	}
-}
-else if ("WPA2-Personal" == $encrypt_mode){
-	if ("TKIP" == $encrypt_method){
-		$security = "WPA2_PSK_TKIP";
-	}
-	else if ("AES" == $encrypt_method){
-		$security = "WPA2_PSK_AES";
-	}
-	else{
-		$security = "WPA2_PSK_TKIPAES";
-	}
-}
-else if ("WPA-WPA2-Personal" == $encrypt_mode){
-		$security = "WPAWPA2_PSK_TKIPAES";
+	$network_password = $network_pass_128;
 }
 //WPA-Enterprise uses TKIP with RC4 encryption, while WPA2-Enterprise adds AES encryption.
 else if ("WPA2-Enterprise" == $encrypt_mode){
-		$security = "WPA2_Enterprise";
+	$security = "WPA2_Enterprise";
 }
 else if ("WPA-WPA2-Enterprise" == $encrypt_mode){
-		$security = "WPA_WPA2_Enterprise";
-}
-else if ("WPA3-Personal" == $encrypt_mode){
-    if ("AES" == $encrypt_method)
-        	$security = "WPA3-Personal Only";
-}else if ("WPA3-Personal-Transition" == $encrypt_mode){
-    if ("AES" == $encrypt_method)
-        	$security = "WPA3-Personal Transition";
-}else if ("WPA3-Personal-Compatibility" == $encrypt_mode){
-    if ("AES" == $encrypt_method)
-                $security = "WPA3-Personal Compatibility";
-}
-else{
-		$security = "None";
+	$security = "WPA_WPA2_Enterprise";
 }
 //for SSID 1 and 2 don't show password for mso user
 $password_mso_user = !(($id == 1 || $id == 2 || $id == 17) && ($_SESSION["loginuser"] == "mso"));
@@ -442,7 +405,7 @@ $(document).ready(function() {
 
 	$(":radio[name='channel']").change(function() {
 		if(((MeshEnable=="false") || (HCMEnable!="Enable"))){
-			if($("#channel_automatic").is(":checked"))
+			if($("#channel_automatic").is(":checked") && radio_check == "2.4")
 				$('input[name=channel_bandwidth]').prop("disabled", true);
 			else
 				$('input[name=channel_bandwidth]').prop("disabled", false);
@@ -844,7 +807,7 @@ wpa2psk ==> 8 to 63 Ascii characters
     	$('#channel_number,input[name=channel_bandwidth]').prop("disabled", true);
     }
     else{
-		if('<?% echo($channel_automatic); ?>' == 'true'){
+		if('<?% echo($channel_automatic); ?>' == 'true' && radio_check == "2.4"){
 			$('input[name=channel_bandwidth]').prop("disabled", true);
 		}
     }
