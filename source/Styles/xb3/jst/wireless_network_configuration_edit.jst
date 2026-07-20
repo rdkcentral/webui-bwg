@@ -928,13 +928,11 @@ function setResetInfo(info) {
 					}				
 				}
 				else {
-					if ((strstr($support_mode_2g, "ax")) && ($axEnable == "true")){
+					if (strstr($support_mode_2g, "ax")){
 						echo( '<option value="g,n" ');   echo( (  "g,n"==$wireless_mode)? 'selected':'');  echo('>802.11 g/n</option>');
-						echo( '<option value="g,n,ax" '); echo( ("g,n,ax"==$wireless_mode)? 'selected':''); echo('>802.11 g/n/ax</option>');
-					}
-					else if ((strstr($support_mode_2g, "ax")) && ($axEnable == "false"))
-					{
-						echo( '<option value="g,n" ');   echo( (  "g,n"==$wireless_mode)? 'selected':'');  echo('>802.11 g/n</option>');
+						if ($axEnable == "true"){
+							echo( '<option value="g,n,ax" '); echo( ("g,n,ax"==$wireless_mode)? 'selected':''); echo('>802.11 g/n/ax</option>');
+						}
 					}
 					else
 					{
