@@ -267,25 +267,13 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 					$encrypt_mode   = "WPA3-Personal";
 					$encrypt_method = ("17" == $i) ? "AES+GCMP" : "AES";
 					break;
-				case "WPA3-Personal Only AES_GCMP":
-					$encrypt_mode   = "WPA3-Personal";
-					$encrypt_method = "AES+GCMP";
-					break;
 				case "WPA3-Personal Transition":
 					$encrypt_mode   = "WPA3-Personal-Transition";
 					$encrypt_method = ("17" == $i) ? "AES+GCMP" : "AES";
 					break;
-				case "WPA3-Personal Transition AES_GCMP":
-					$encrypt_mode   = "WPA3-Personal-Transition";
-					$encrypt_method = "AES+GCMP";
-					break;
 				case "WPA3-Personal Compatibility":
 					$encrypt_mode   = "WPA3-Personal-Compatibility";
 					$encrypt_method = ("17" == $i) ? "AES+GCMP" : "AES";
-					break;
-				case "WPA3-Personal Compatibility AES_GCMP":
-					$encrypt_mode   = "WPA3-Personal-Compatibility";
-					$encrypt_method = "AES+GCMP";
 					break;
 				default:
 					$encrypt_mode   = "None";
