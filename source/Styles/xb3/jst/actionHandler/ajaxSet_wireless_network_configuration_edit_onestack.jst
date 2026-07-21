@@ -85,9 +85,9 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 		if ("17" == $i) {
 			// 6GHz: only WPA3 modes
 			if ($WPA3_enable == "true" && $WPA3_compatibility_enable == "true") {
-				$validSecurityModes = ['WPA3-Personal Compatibility', 'WPA3-Personal Compatibility AES_GCMP', 'WPA3-Personal Only', 'WPA3-Personal Only AES_GCMP']/*p2j-array*/;
+				$validSecurityModes = ['WPA3-Personal Compatibility', 'WPA3-Personal Only']/*p2j-array*/;
 			} else {
-				$validSecurityModes = ['WPA3-Personal Only', 'WPA3-Personal Only AES_GCMP']/*p2j-array*/;
+				$validSecurityModes = ['WPA3-Personal Only']/*p2j-array*/;
 			}
 		} else {
 			// 2.4/5GHz: include legacy modes exposed via the "Show More Security Mode Options" dialog
