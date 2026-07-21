@@ -34,16 +34,18 @@ $arConfig = json_decode($jsConfig, true);
 $thisUser = $arConfig['thisUser'];
 $Radio_1_Support_Modes = getStr("Device.WiFi.Radio.1.SupportedStandards");
 $Radio_2_Support_Modes = getStr("Device.WiFi.Radio.2.SupportedStandards");
+$Radio_3_Support_Modes = getStr("Device.WiFi.Radio.3.SupportedStandards");
 $WifiPersonalizationEnable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_WiFiNeedsPersonalization");
 
 /*********************************************************************************************/
 $i = $arConfig['ssid_number'];
-$r = (2 - intval($i)%2);        //1,3,5,7 == 1(2.4G); 2,4,6,8 == 2(5G)
+$r = ("17" == $i) ? "3" : (2 - intval($i)%2);        //1,3,5,7 == 1(2.4G); 2,4,6,8 == 2(5G); 17 == 3(6G)
 $Mesh_Enable 	= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.Enable");
 $Mesh_State 	= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.State");
 $Mesh_Mode = ($Mesh_Enable == 'true' && $Mesh_State == 'Full')? true : false;
 $frequency_band = getStr("Device.WiFi.Radio."+$r+".OperatingFrequencyBand");
-$radio_band     = (strstr($frequency_band,"5G")) ? "5" : "2.4";
+$radio_band     = (strstr($frequency_band,"6G")) ? "6" : ((strstr($frequency_band,"5G")) ? "5" : "2.4");
+$radio_support_modes = ("3" == $r) ? $Radio_3_Support_Modes : ((("2" == $r) ? $Radio_2_Support_Modes : $Radio_1_Support_Modes));
 
 // this method for only restart a certain SSID
 if($i != 1 && $i != 2 && $i != 17) $Mesh_Mode = false;
@@ -64,7 +66,7 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 	if ("true" == $arConfig['radio_enable'] && (!$Mesh_Mode) )
 	{
 		$validation = true;
-		if ($i == 1 || $i == 2) {
+		if ($i == 1 || $i == 2 || $i == 17) {
 			if(($arConfig['password_update']=="false") && ("mso" == $thisUser)){
 				$arConfig['network_password']=$network_pass;
 			}
@@ -74,16 +76,87 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 			}
 		}
 		//Remove XHS and XfinityWiFi SSID information pages from MSO and CUSADMIN GUIs (Commercial products)
-		else $validation = false;
+		else {
+			$validation = false;
+		}
+		$WPA3_enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WPA3_Personal_Transition.Enable");
+		$WPA3_compatibility_enable = getStr("Device.WiFi.WPA3_Personal_Compatibility");
+		// Build security allowlist based on SSID and WPA3 capabilities, matching UI options
+		if ("17" == $i) {
+			// 6GHz: only WPA3 modes
+			if ($WPA3_enable == "true" && $WPA3_compatibility_enable == "true") {
+				$validSecurityModes = ['WPA3-Personal Compatibility', 'WPA3-Personal Only']/*p2j-array*/;
+			} else {
+				$validSecurityModes = ['WPA3-Personal Only']/*p2j-array*/;
+			}
+		} else {
+			// 2.4/5GHz: include legacy modes exposed via the "Show More Security Mode Options" dialog
+			if ($WPA3_enable == "true" && $WPA3_compatibility_enable == "true") {
+				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA3-Personal Compatibility', 'WPA3-Personal Transition', 'WPA3-Personal Only', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+			} else if ($WPA3_compatibility_enable == "true") {
+				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA3-Personal Compatibility', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+			} else if ($WPA3_enable == "true") {
+				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA3-Personal Transition', 'WPA3-Personal Only', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+			} else {
+				$validSecurityModes = ['None', 'WEP_64', 'WEP_128', 'WPA_PSK_TKIP', 'WPA_PSK_AES', 'WPA2_PSK_TKIP', 'WPA2_PSK_AES', 'WPA2_PSK_TKIPAES', 'WPAWPA2_PSK_TKIPAES', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/;
+			}
+		}
+		if($validation) $validation = isValInArray($arConfig['security'], $validSecurityModes);
+		$securityRequiresPassword = !isValInArray($arConfig['security'], ['None', 'WPA2_Enterprise', 'WPA_WPA2_Enterprise']/*p2j-array*/);
 		if ("mso" != $thisUser){
-			if($validation) $validation = isValInArray($arConfig['channel_bandwidth'], ['20MHz', '40MHz', '80MHz', '160MHz']/*p2j-array*/);
-			if (strstr($Radio_1_Support_Modes, "ax") && strstr($Radio_2_Support_Modes, "ax"))
+			$validChannelBandwidth = ["20MHz", "40MHz"]/*p2j-array*/;
+			if ("5" == $radio_band) {
+				if (strstr($radio_support_modes, "ax") || strstr($radio_support_modes, "be")) {
+					$validChannelBandwidth = ["20MHz", "40MHz", "80MHz", "160MHz"]/*p2j-array*/;
+				}
+				else if (strstr($radio_support_modes, "ac")) {
+					$validChannelBandwidth = ["20MHz", "40MHz", "80MHz"]/*p2j-array*/;
+				}
+			}
+			else if ("6" == $radio_band) {
+				if (strstr($radio_support_modes, "be")) {
+					$validChannelBandwidth = ["20MHz", "40MHz", "80MHz", "160MHz", "320MHz"]/*p2j-array*/;
+				}
+				else {
+					$validChannelBandwidth = ["20MHz", "40MHz", "80MHz", "160MHz"]/*p2j-array*/;
+				}
+			}
+			if($validation) $validation = isValInArray($arConfig['channel_bandwidth'], $validChannelBandwidth);
+			if ("2.4" == $radio_band)
 			{
-				if($validation) $validation = (($radio_band=="2.4" && isValInArray($arConfig['wireless_mode'], ["g,n", "g,n,ax"]/*p2j-array*/)) || ($radio_band=="5" && isValInArray($arConfig['wireless_mode'], ["a,n,ac", "a,n,ac,ax"]/*p2j-array*/)));
+				if (strstr($radio_support_modes, "be")) {
+					if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["g,n", "g,n,ax", "g,n,ax,be"]/*p2j-array*/);
+				}
+				else if (strstr($radio_support_modes, "ax")) {
+					if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["g,n", "g,n,ax"]/*p2j-array*/);
+				}
+				else {
+					if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["n", "g,n", "b,g,n"]/*p2j-array*/);
+				}
+			}
+			else if ("5" == $radio_band)
+			{
+				if (strstr($radio_support_modes, "be")) {
+					if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["a,n", "a,n,ac", "a,n,ac,ax", "a,n,ac,ax,be"]/*p2j-array*/);
+				}
+				else if (strstr($radio_support_modes, "ax")) {
+					if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["a,n", "a,n,ac", "a,n,ac,ax"]/*p2j-array*/);
+				}
+				else if (strstr($radio_support_modes, "ac")) {
+					if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["n", "a,n", "ac", "n,ac", "a,n,ac"]/*p2j-array*/);
+				}
+				else {
+					if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["n", "a,n"]/*p2j-array*/);
+				}
 			}
 			else
 			{
-				if($validation) $validation = (($radio_band=="2.4" && isValInArray($arConfig['wireless_mode'], ["n", "g,n", "b,g,n"]/*p2j-array*/)) || ($radio_band=="5" && isValInArray($arConfig['wireless_mode'], ["n", "a,n", "ac", "n,ac", "a,n,ac"]/*p2j-array*/)));
+				if (strstr($radio_support_modes, "be")) {
+					if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["ax", "ax,be"]/*p2j-array*/);
+				}
+				else {
+					if($validation) $validation = isValInArray($arConfig['wireless_mode'], ["ax"]/*p2j-array*/);
+				}
 			}
 			if ("false"==$arConfig['channel_automatic']){
 				$PossibleChannels = getStr("Device.WiFi.Radio."+$r+".PossibleChannels");
@@ -97,10 +170,20 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 				}
 				if ($validation && "false"==$arConfig['channel_automatic']) $validation = isValInArray($arConfig['channel_number'], $PossibleChannelsArr);
 			}
-			if($validation) $validation = (preg_match("/^[ -~]{8,63}$|^[a-fA-F0-9]{64}$/i", $arConfig['network_password'])==1);
+			if ($validation && $securityRequiresPassword) {
+				if ($arConfig['security'] == 'WEP_64') {
+					$validation = (preg_match("/^[ -~]{5}$|^[a-fA-F0-9]{10}$/i", $arConfig['network_password']) == 1);
+				}
+				else if ($arConfig['security'] == 'WEP_128') {
+					$validation = (preg_match("/^[ -~]{13}$|^[a-fA-F0-9]{26}$/i", $arConfig['network_password']) == 1);
+				}
+				else {
+					$validation = (preg_match("/^[ -~]{8,63}$|^[a-fA-F0-9]{64}$/i", $arConfig['network_password']) == 1);
+				}
+			}
 			if ($WifiPersonalizationEnable === "true") {
 				$DefaultKeyPassphrase = getStr("Device.WiFi.AccessPoint."+$i+".Security.X_COMCAST-COM_DefaultKeyPassphrase");
-				if($validation && ($DefaultKeyPassphrase == $arConfig['network_password']) && ($arConfig['security'] != 'None' && $arConfig['security'] != 'WPA2_Enterprise' && $arConfig['security'] != 'WPA_WPA2_Enterprise')) {
+				if($validation && ($DefaultKeyPassphrase == $arConfig['network_password']) && $securityRequiresPassword) {
 					$validation = false;
 					$response_message = 'Please change Network Password !';
 				}
@@ -108,7 +191,7 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 		}
 		if ($WifiPersonalizationEnable === "true") {
 			$DefaultKeyPassphrase = getStr("Device.WiFi.AccessPoint."+$i+".Security.X_COMCAST-COM_DefaultKeyPassphrase");
-			if($validation && ($DefaultKeyPassphrase == $arConfig['network_password']) && ($arConfig['security'] != 'None' && $arConfig['security'] != 'WPA2_Enterprise' && $arConfig['security'] != 'WPA_WPA2_Enterprise')) {
+			if($validation && ($DefaultKeyPassphrase == $arConfig['network_password']) && $securityRequiresPassword) {
 				$validation = false;
 				$response_message = 'Please change Network Password !';
 			}
@@ -199,11 +282,11 @@ if ("true" == getStr("Device.WiFi.Radio."+$r+".Enable")) {
 
 			// User "mso" have another page to configure this
 			if ("mso" != $thisUser){
-				setStr("Device.WiFi.Radio."+$i+".OperatingChannelBandwidth", $arConfig['channel_bandwidth'], false);
-				setStr("Device.WiFi.Radio."+$i+".OperatingStandards", $arConfig['wireless_mode'], true);
-				setStr("Device.WiFi.Radio."+$i+".AutoChannelEnable", $arConfig['channel_automatic'], true);
+				setStr("Device.WiFi.Radio."+$r+".OperatingChannelBandwidth", $arConfig['channel_bandwidth'], false);
+				setStr("Device.WiFi.Radio."+$r+".OperatingStandards", $arConfig['wireless_mode'], true);
+				setStr("Device.WiFi.Radio."+$r+".AutoChannelEnable", $arConfig['channel_automatic'], true);
 				if ("false"==$arConfig['channel_automatic']){
-					setStr("Device.WiFi.Radio."+$i+".Channel", $arConfig['channel_number'], true);
+					setStr("Device.WiFi.Radio."+$r+".Channel", $arConfig['channel_number'], true);
 				}
 			}
 
@@ -268,5 +351,7 @@ if($response_message!='') {
 	$response.error_message = $response_message;
 	echo( htmlspecialchars(json_encode($response), ENT_NOQUOTES, 'UTF-8'));
 }
-else echo( htmlspecialchars($jsConfig, ENT_NOQUOTES, 'UTF-8'));
+else {
+	echo( htmlspecialchars(json_encode('success'), ENT_NOQUOTES, 'UTF-8'));
+}
 ?>

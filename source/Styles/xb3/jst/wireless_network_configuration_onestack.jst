@@ -36,6 +36,7 @@
 <?%
 $ForceDisable = getStr("Device.WiFi.X_RDK-CENTRAL_COM_ForceDisable");
 $Mesh_Enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.Enable");
+$HCM_Enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MeshWifiOptimization.Mode");
 $Mesh_State = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.State");
 $Mesh_Mode = ($Mesh_Enable == 'true' && $Mesh_State == 'Full')?'true':'false';
 $OperatingChannelBandwidth="";
@@ -492,7 +493,8 @@ $(document).ready(function() {
     $ForceDisable = '<?% echo( $ForceDisable); ?>';
     $Mesh_Mode = '<?% echo( $Mesh_Mode); ?>';
     var MeshEnable='<?% echo( $Mesh_Enable); ?>';
-    if(MeshEnable=="true"){
+	var HCMEnable= '<?% echo( $HCM_Enable); ?>';
+	if(MeshEnable=="true" || HCMEnable == 'Enable'){
     $('[name="channel_bandwidth"]').prop("disabled", true);
     }else{
 	$('[name="channel_bandwidth"]').prop("disabled", false);
@@ -552,6 +554,14 @@ $(document).ready(function() {
 		disable_ssid_options('private_wifi', 3);
 		disable_ssid_options('public_wifi', 3);
 	}
+	// check if the LowerLayers radio 6GHz is enabled. If disabled, the user shouldn't be able to enable the SSID.
+	<?% if($OperatingChannelBandwidth == "6GHz")
+	{?>
+	if(!G_radio_enable3){
+		disable_ssid_options('private_wifi', 4);
+	}
+	<?%
+	}?>
 	//Disable all the MAC filter options in user admin mode if bridge mode is enabled
 	if (isBridge != 'router' || $ForceDisable == 'true') {
 		if(isBridge == "full-bridge-static" || $ForceDisable == 'true'){
@@ -570,14 +580,6 @@ $(document).ready(function() {
 		$('.div_private_wifi .btn').click(function(e) {
 			e.preventDefault();
 		});
-	// check if the LowerLayers radio 6GHz is enabled. if disable, the user shouldn't be able to enable the SSID.
-	<?%if($OperatingChannelBandwidth == "6GHz")
-	{?>
-		if(!G_radio_enable3){
-		disable_ssid_options('private_wifi', 4);
-	}
-	<?%
-	}?>
 		if ("mso" != "<?% echo( $_SESSION["loginuser"]); ?>" || $ForceDisable == 'true'){
 			$("#mac_admin").addClass('disabled');
 			$("#mac_ssid").addClass('disabled').prop('disabled',true);
@@ -644,7 +646,7 @@ $(document).ready(function() {
 	}).trigger("change");
 
     $("[name='channel']").change(function() {
-		if($("#channel_automatic").is(":checked") || (MeshEnable=="true")) {
+		if($("#channel_automatic").is(":checked") || (MeshEnable=="true") || (HCMEnable == 'Enable')) {
 			document.getElementById('channel_number').disabled = true;
 			show_extch(0);
 			$("#channel_number").hide();
@@ -739,7 +741,7 @@ $(document).ready(function() {
 	}).trigger("change");
 	
 	$("[name='channel_bandwidth']").change(function() {
-		if ($("#channel_bandwidth20").prop("checked") || (MeshEnable=="true")) {
+		if ($("#channel_bandwidth20").prop("checked") || (MeshEnable=="true") || (HCMEnable == 'Enable')) {
 			$('div [id*="Ext"]').prop("disabled", true);
 		}
 		else {
@@ -781,6 +783,19 @@ $(document).ready(function() {
 			else {
 				//20MHz, disable channels 116, 140 Legacy Interop Disabled Channels
 				//$("#channel_number1").find("[value='116'],[value='140']").prop("disabled", true).prop("selected", false);
+			}
+
+			var selectedChannel1 = $("#channel_number1").val();
+
+			if ($("#channel_number1 option:selected").length === 0 || $("#channel_number1 option:selected").prop("disabled")) {
+				var firstEnabled1 = $("#channel_number1 option:not(:disabled):first").val();
+				if (firstEnabled1) $("#channel_number1").val(firstEnabled1);
+			}
+
+			if (selectedChannel1 !== $("#channel_number1").val()) {
+				window.setTimeout(function() {
+					$("#channel_number1").trigger("change", {silent:true});
+				}, 0);
 			}
 		}).trigger("change");
 		$("[name='channel_bandwidth']").change(function() {
@@ -880,10 +895,10 @@ $(document).ready(function() {
 	
 	// disable NOT 20MHz channel if 165
 	// Warning for DFS channel (52-140)
-	$("#channel_number1").change(function(){
+	$("#channel_number1").change(function(event, data){
 		var channel = $("#channel_number1 option:selected").val();
 
-		if(channel >= 52 && channel <= 140 ) {
+		if ((!data || !data.silent) && channel >= 52 && channel <= 140 ) {
 			jConfirm(
 				"WARNING:<br/> You are selecting a Dynamic Frequency Selection (DFS) Channel (52-140). Some Wi-Fi devices do not support DFS channels in the 5 GHz band. For those devices that do not support DFS channels, the 5 GHz Wi-Fi Network Name (SSID) will not be displayed on the list of available networks. Do you wish to continue?"
 				, "Are You Sure?"
@@ -940,7 +955,7 @@ $(document).ready(function() {
 	        });
 	}
         //for Mesh WiFi integration
-	if($Mesh_Mode == 'true' || $ForceDisable == 'true'){
+	if($Mesh_Mode == 'true' || $ForceDisable == 'true' || HCMEnable == 'Enable'){
 		//disable >> Channel Selection:, Channel:, Channel Bandwidth:
 		$('#channel_automatic, #channel_manual, #channel_automatic1, #channel_manual1, #channel_number, #channel_number1, #auto_channel_number, #auto_channel_number1, input[name=channel_bandwidth], input[name=channel_bandwidth1]').prop("disabled", true);
 		<?%if($OperatingChannelBandwidth == "6GHz")
@@ -1729,12 +1744,12 @@ if($OperatingChannelBandwidth == "6GHz")
 		<label for="wireless_mode1">Mode:</label>
 		<select name="wireless_mode1" id="wireless_mode1">
 		<?% if (strstr($support_mode_5g, "ax")){ ?>
-		<?% if (strstr($support_mode_5g, "be")){ ?>
-			<option value="a,n,ac,ax,be"  <?% if ("a,n,ac,ax,be" == $wireless_mode1) echo( 'selected="selected"');?> >802.11 a/n/ac/ax/be</option>
-		<?% } ?>
 			<option value="a,n"  <?% if ("a,n" == $wireless_mode1) echo( 'selected="selected"');?> >802.11 a/n</option>
 			<option value="a,n,ac"	<?% if ("a,n,ac" == $wireless_mode1) echo( 'selected="selected"');?> >802.11 a/n/ac</option>
 			<option value="a,n,ac,ax"	<?% if ("a,n,ac,ax" == $wireless_mode1) echo( 'selected="selected"');?> >802.11 a/n/ac/ax</option>
+		<?% if (strstr($support_mode_5g, "be")){ ?>
+			<option value="a,n,ac,ax,be"  <?% if ("a,n,ac,ax,be" == $wireless_mode1) echo( 'selected="selected"');?> >802.11 a/n/ac/ax/be</option>
+		<?% } ?>
 		<?% } 
 		else if (strstr($support_mode_5g, "ac")){ ?>
         	<option value="n"       <?% if ("n"      == $wireless_mode1) echo( 'selected="selected"');?> >802.11 n</option>

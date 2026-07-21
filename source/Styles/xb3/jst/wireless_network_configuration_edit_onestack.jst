@@ -137,7 +137,7 @@ $channel_bandwidth	= $wifi_value['channel_bandwidth'];
 $ext_channel		= $wifi_value['ext_channel'];
 $network_pass_64	= $wifi_value['network_pass_64'];
 $network_pass_128	= $wifi_value['network_pass_128'];
-$possible_channels	= $wifi_value['channel_bandwidth'];
+$possible_channels	= $wifi_value['possible_channels'];
 $defaultSSID		= ($id == 3)?"":$wifi_value['DefaultSSID'];
 $defaultKeyPassphrase	= ($id == 3)?"":$wifi_value['DefaultKeyPassphrase'];
 $supported_mode         = $wifi_value['SupportedStandards'];
@@ -267,7 +267,7 @@ function showDialog() {
 	});
 	
 	//disable wep if 11n
-	if ("n"==$("#wireless_mode").val() || "n,ac"==$("#wireless_mode").val() || "a,n"==$("#wireless_mode").val() || "a,n,ac"==$("#wireless_mode").val() || "a,n,ac,ax"==$("#wireless_mode").val() || "g,n"==$("#wireless_mode").val() || "b,g,n"==$("#wireless_mode").val() || "g,n,ax"==$("#wireless_mode").val()) {
+	if ("n"==$("#wireless_mode").val() || "n,ac"==$("#wireless_mode").val() || "a,n"==$("#wireless_mode").val() || "a,n,ac"==$("#wireless_mode").val() || "a,n,ac,ax"==$("#wireless_mode").val() || "a,n,ac,ax,be"==$("#wireless_mode").val() || "g,n"==$("#wireless_mode").val() || "b,g,n"==$("#wireless_mode").val() || "g,n,ax"==$("#wireless_mode").val() || "g,n,ax,be"==$("#wireless_mode").val()) {
 		$("#pop_dialog").find("[value='WEP_64'],[value='WEP_128']").prop("disabled", true);
 	}
 	else {
@@ -634,7 +634,7 @@ $(document).ready(function() {
 	});
 	$("#wireless_mode").change(function() {
 		// ONLY deal WEP for UI-4.0
-		if ("n"==$("#wireless_mode").val() || "n,ac"==$("#wireless_mode").val() || "a,n"==$("#wireless_mode").val() || "a,n,ac"==$("#wireless_mode").val() || "a,n,ac,ax"==$("#wireless_mode").val() || "g,n"==$("#wireless_mode").val() || "g,n,ax"==$("#wireless_mode").val()) {
+		if ("n"==$("#wireless_mode").val() || "n,ac"==$("#wireless_mode").val() || "a,n"==$("#wireless_mode").val() || "a,n,ac"==$("#wireless_mode").val() || "a,n,ac,ax"==$("#wireless_mode").val() || "a,n,ac,ax,be"==$("#wireless_mode").val() || "g,n"==$("#wireless_mode").val() || "g,n,ax"==$("#wireless_mode").val() || "g,n,ax,be"==$("#wireless_mode").val()) {
 			if ($("#security").val()=="WEP_64" || $("#security").val()=="WEP_128"){
 				$("#security").val("WPAWPA2_PSK_TKIPAES");
 			}
@@ -665,11 +665,14 @@ $(document).ready(function() {
 			//40MHz
 			if ($("#channel_bandwidth1").is(":checked")) {
 				if ("BelowControlChannel" == "<?% echo( $ext_channel); ?>"){
-					$("#channel_number").find("[value='36'],[value='44'],[value='52'],[value='60'],[value='100'],[value='108'],[value='116'],[value='132'],[value='140'],[value='144'],[value='149'],[value='157'],[value='165']").prop("disabled", true).prop("selected", false);
-				}	
-				else{	//AboveControlChannel or Auto  //zqiu: exclude 116,140
-					$("#channel_number1").find("[value='40'],[value='48'],[value='56'],[value='64'],[value='104'],[value='112'],[value='116'],[value='136'],[value='140'],[value='144'],[value='153'],[value='161'],[value='165']").prop("disabled", true).prop("selected", false);
+					$disableChannelList = [36, 44, 52, 60, 100, 108, 116, 132, 140, 144, 149, 157, 165 ];
+					checkAndSetChannelNumber($disableChannelList,'40');
 				}
+				else{    //AboveControlChannel or Auto
+					$disableChannelList = [40, 48, 56, 64, 104, 112, 116, 136, 140, 144, 153, 161, 165 ];
+					checkAndSetChannelNumber($disableChannelList,'36');
+				}
+				$("#channel_number").trigger("change", {silent:true});
 			}
 			//80MHz
 			else if ($("#channel_bandwidth2").is(":checked")) {
@@ -688,30 +691,8 @@ $(document).ready(function() {
 		}
 	}).trigger("change");
 		$("[name='channel_bandwidth3']").change(function() {
-		//enable all channel first
+		//enable all channel first - 6GHz PSC channels remain selectable for all bandwidths
 		$("#channel_number option").prop("disabled", false);
-		//disable some channel as per extension channel when NOT 20MHz in 5G (2.4G able to set channel and extension channel together)
-
-	if (!$("#channel_bandwidth203").prop("checked")) {
-		//40MHz
-		if ($("#channel_bandwidth4").is(":checked")) {
-			if ("BelowControlChannel" == "<?% echo( $ext_channel); ?>"){
-				$("#channel_number").find("[value='5'],[value='13'],[value='21'],[value='29'],[value='37'],[value='45'],[value='53'],[value='61'],[value='69'],[value='77'],[value='85'],[value='93'],[value='101'],[value='109'],[value='117'],[value='125'],[value='133'],[value='141'],[value='149'],[value='157'],[value='165'],[value='173'],[value='181'],[value='189'],[value='197'],[value='205'],[value='213'],[value='221'],[value='229'],[value='233']").prop("disabled", true).prop("selected", false);
-			}
-			else{	//AboveControlChannel or Auto
-			$("#channel_number").find("[value='5'],[value='13'],[value='21'],[value='29'],[value='37'],[value='45'],[value='53'],[value='61'],[value='69'],[value='77'],[value='85'],[value='93'],[value='101'],[value='109'],[value='117'],[value='125'],[value='133'],[value='141'],[value='149'],[value='157'],[value='165'],[value='173'],[value='181'],[value='189'],[value='197'],[value='205'],[value='213'],[value='221'],[value='229'],[value='233']").prop("disabled", true).prop("selected", false);
-			}
-		}
-		//80MHz
-		else if ($("#channel_bandwidth5").is(":checked")) {
-			$("#channel_number").find("[value='5'],[value='9'],[value='13'],[value='21'],[value='25'],[value='29'],[value='37'],[value='41'],[value='45'],[value='53'],[value='57'],[value='61'],[value='69'],[value='73'],[value='77'],[value='85'],[value='89'],[value='93'],[value='101'],[value='105'],[value='109'],[value='117'],[value='121'],[value='125'],[value='133'],[value='137'],[value='141'],[value='149'],[value='153'],[value='157'],[value='165'],[value='169'],[value='173'],[value='181'],[value='185'],[value='189'],[value='197'],[value='201'],[value='205'],[value='213'],[value='217'],[value='221'],[value='225'],[value='229'],[value='233']").prop("disabled", true).prop("selected", false);
-		}
-		//160MHz
-		else if ($("#channel_bandwidth6").is(":checked")) {
-			$("#channel_number").find("[value='5'],[value='9'],[value='13'],[value='17'],[value='21'],[value='25'],[value='29'],[value='37'],[value='41'],[value='45'],[value='49'],[value='53'],[value='57'],[value='61'],[value='69'],[value='73'],[value='77'],[value='81'],[value='85'],[value='89'],[value='93'],[value='101'],[value='105'],[value='109'],[value='113'],[value='117'],[value='121'],[value='125'],[value='133'],[value='137'],[value='141'],[value='145'],[value='149'],[value='153'],[value='157'],[value='165'],[value='169'],[value='173'],[value='177'],[value='181'],[value='185'],[value='189'],[value='197'],[value='201'],[value='205'],[value='209'],[value='213'],[value='217'],[value='221'],[value='225'],[value='229'],[value='233']").prop("disabled", true).prop("selected", false);
-		}
-	}
-
 	}).trigger("change");
 	$("#channel_number").change(function() {
 		if ("165" == $(this).val()){
@@ -932,16 +913,16 @@ function init_form()
 			}
 		}
 		else if ("160MHz" == channel_bandwidth){
-                	if ("6" == radio_band) {
+			if ("6" == radio_band) {
 				$("#channel_number").find("[value='132'],[value='136'],[value='140'],[value='144'],[value='149'],[value='153'],[value='157'],[value='161']").prop("disabled", true).prop("selected", false);
-                        } else {
-                        	$("#channel_number").find("[value='132'],[value='136'],[value='140'],[value='144'],[value='149'],[value='153'],[value='157'],[value='161'],[value='165']").prop("disabled", true).prop("selected", false);
-                        }        
+			} else {
+				$("#channel_number").find("[value='132'],[value='136'],[value='140'],[value='144'],[value='149'],[value='153'],[value='157'],[value='161'],[value='165']").prop("disabled", true).prop("selected", false);
+			}
 		}
-                if ("6" != radio_band) {
-		         // NOT 20MHz, disable channel 165
-		         $("#channel_number").find("[value='165']").prop("disabled", true).prop("selected", false);
-                }
+		if ("6" != radio_band) {
+			// NOT 20MHz, disable channel 165
+			$("#channel_number").find("[value='165']").prop("disabled", true).prop("selected", false);
+		}
 	}
 	else {
 		//if Channel Bandwidth is 20MHz DFS Channels (Channels 50 - 144) should be greyed out
@@ -949,7 +930,16 @@ function init_form()
 	}
 
 	// Warning for DFS channel (52-140)
-	$("#channel_number").change(function(){
+	$("#channel_number").change(function(event, data){
+		if (data && data.silent) {
+			return;
+		}
+
+		// DFS warning applies only to 5GHz (channels 52-140)
+		if ("5" != radio_band) {
+			return;
+		}
+
 		var channel = $("#channel_number option:selected").val();
 
 		if(channel >= 52 && channel <= 140 ) {
@@ -1169,6 +1159,9 @@ function setResetInfo(info) {
 					if (strstr($supported_mode, "ax")){
 						echo( '<option value="a,n,ac" '); echo( ("a,n,ac"==$wireless_mode)? 'selected':''); echo('>802.11 a/n/ac</option>');
 						echo( '<option value="a,n,ac,ax" '); echo( ("a,n,ac,ax"==$wireless_mode)? 'selected':''); echo('>802.11 a/n/ac/ax</option>');
+						if (strstr($supported_mode, "be")){
+							echo( '<option value="a,n,ac,ax,be" '); echo( ("a,n,ac,ax,be"==$wireless_mode)? 'selected':''); echo('>802.11 a/n/ac/ax/be</option>');
+						}
 					}
 					else if (strstr($supported_mode, "ac")){
 						echo( '<option value="n" ');     echo( (    "n"==$wireless_mode)? 'selected':''); echo('>802.11 n</option>');
@@ -1212,41 +1205,39 @@ function setResetInfo(info) {
 		<div class="form-row">
 			<label for="security">Security Mode:</label>
 			<select name="encryption_method" id="security">
-                        <?% if($WPA3_enable == "true" && $WPA3_compatibility_enable == "true"){ ?>
-                                <option value="WPA3-Personal Compatibility" <?% if ("WPA3-Personal Compatibility"==$security) echo( "selected");?> >WPA3-Personal Compatibility (Recommended)</option>
-                                <option value="WPA3-Personal Transition" <?% if ("WPA3-Personal Transition"==$security) echo( "selected");?> >WPA3-Personal Transition</option>
-                                <option value="WPA3-Personal Only" <?% if ("WPA3-Personal Only"==$security) echo( "selected");?> >WPA3-Personal Only</option>
-                                <option value="WPA2_PSK_AES" title="WPA requires an 8-63 ASCII character password." <?% if ("WPA2_PSK_AES"==$security) echo( "selected");?> >WPA2-PSK (AES)</option>
-                        <?%
-                        }else if($WPA3_enable == "true"){ ?>
-                                <option value="WPA3-Personal Transition" <?% if ("WPA3-Personal Transition"==$security) echo( "selected");?> >WPA3-Personal Transition (Recommended)</option>
-                                <option value="WPA3-Personal Only" <?% if ("WPA3-Personal Only"==$security) echo( "selected");?> >WPA3-Personal Only</option>
-                                <option value="WPA2_PSK_AES" title="WPA requires an 8-63 ASCII character password." <?% if ("WPA2_PSK_AES"==$security) echo( "selected");?> >WPA2-PSK (AES)</option>
-                        <?%
-                        }else if($WPA3_compatibility_enable == "true"){ ?>
-                                <option value="WPA3-Personal Compatibility" <?% if ("WPA3-Personal Compatibility"==$security) echo( "selected");?> >WPA3-Personal Compatibility (Recommended)</option>                                
-                                <option value="WPA2_PSK_AES" title="WPA requires an 8-63 ASCII character password." <?% if ("WPA2_PSK_AES"==$security) echo( "selected");?> >WPA2-PSK (AES)</option>
-                        <?%
-                        }else{
-						?>
-                                <option value="WPA2_PSK_AES" 		title="WPA requires an 8-63 ASCII character password." <?% if ("WPA2_PSK_AES"==$security)        echo( "selected");?> >WPA2-PSK (AES)(Recommended)</option>
-                        <?% } ?>
-				<option value="None" 				title="Open networks do not have a password." 			<?% if ("None"==$security) echo( "selected");?> >Open (risky)</option>
-				<option value="WEP_64" 				title="WEP  64 requires a  5 ASCII character or  10 hex character password. Hex means only the following characters can be used: ABCDEF0123456789." <?% if ("WEP_64"==$security)              echo( "selected");?> >WEP 64 (risky)</option>
-				<option value="WEP_128" 			title="WEP 128 requires a 13 ASCII character or  26 hex character password. Hex means only the following characters can be used: ABCDEF0123456789." <?% if ("WEP_128"==$security)             echo( "selected");?> >WEP 128 (risky)</option>
-				<option value="WPA_PSK_TKIP" 		title="WPA requires an 8-63 ASCII character or a 64 hex character password. Hex means only the following characters can be used: ABCDEF0123456789." <?% if ("WPA_PSK_TKIP"==$security)        echo( "selected");?> >WPA-PSK (TKIP)</option>
-				<option value="WPA_PSK_AES" 		title="WPA requires an 8-63 ASCII character or a 64 hex character password. Hex means only the following characters can be used: ABCDEF0123456789." <?% if ("WPA_PSK_AES"==$security)         echo( "selected");?> >WPA-PSK (AES)</option>
-				<option value="WPA2_PSK_TKIP" 		title="WPA requires an 8-63 ASCII character or a 64 hex character password. Hex means only the following characters can be used: ABCDEF0123456789." <?% if ("WPA2_PSK_TKIP"==$security)       echo( "selected");?> >WPA2-PSK (TKIP)</option>
-				<option value="WPA2_PSK_TKIPAES"	title="WPA requires an 8-63 ASCII character or a 64 hex character password. Hex means only the following characters can be used: ABCDEF0123456789." <?% if ("WPA2_PSK_TKIPAES"==$security)    echo( "selected");?> >WPA2-PSK (TKIP/AES)</option>
-				<option value="WPAWPA2_PSK_TKIPAES" title="WPA requires an 8-63 ASCII character password." <?% if ("WPAWPA2_PSK_TKIPAES"==$security) echo( "selected");?> >WPAWPA2-PSK (TKIP/AES)</option>
-		<?%
-			if("WPA2_Enterprise"==$security){
-				echo( '<option value="WPA2_Enterprise"		title="WPA2-Enterprise uses a RADIUS servers for authentication purposes." selected >WPA2-Enterprise</option>');
-			}
-			else if("WPA_WPA2_Enterprise"==$security){
-				echo( '<option value="WPA_WPA2_Enterprise" 	title="WPA-WPA2-Enterprise uses a RADIUS servers for authentication purposes." selected >WPA-WPA2-Enterprise</option>');
-			}
-		?>
+			<?% if($id == 17){ ?>
+				<?% if($WPA3_enable == "true" && $WPA3_compatibility_enable == "true"){ ?>
+					<option value="WPA3-Personal Compatibility" <?% if ("WPA3-Personal Compatibility"==$security) echo( "selected");?> >WPA3-Personal Compatibility (Recommended)</option>
+					<option value="WPA3-Personal Only" <?% if ("WPA3-Personal Only"==$security) echo( "selected");?> >WPA3-Personal Only</option>
+				<?% } else { ?>
+					<option value="WPA3-Personal Only" <?% if ("WPA3-Personal Only"==$security) echo( "selected");?> >WPA3-Personal Only</option>
+				<?% } ?>
+			<?% } else { ?>
+				<option value="None" title="Open networks do not have a password." <?% if ("None"==$security) echo( "selected");?> >Open (risky)</option>
+				<?% if($WPA3_enable == "true" && $WPA3_compatibility_enable == "true"){ ?>
+					<option value="WPA3-Personal Compatibility" <?% if ("WPA3-Personal Compatibility"==$security) echo( "selected");?> >WPA3-Personal Compatibility (Recommended)</option>
+					<option value="WPA3-Personal Transition" <?% if ("WPA3-Personal Transition"==$security) echo( "selected");?> >WPA3-Personal Transition</option>
+					<option value="WPA3-Personal Only" <?% if ("WPA3-Personal Only"==$security) echo( "selected");?> >WPA3-Personal Only</option>
+					<option value="WPA2_PSK_AES" title="WPA requires an 8-63 ASCII character password." <?% if ("WPA2_PSK_AES"==$security) echo( "selected");?> >WPA2-PSK (AES)</option>
+				<?% } else if($WPA3_compatibility_enable == "true"){ ?>
+					<option value="WPA3-Personal Compatibility" <?% if ("WPA3-Personal Compatibility"==$security) echo( "selected");?> >WPA3-Personal Compatibility (Recommended)</option>
+					<option value="WPA2_PSK_AES" title="WPA requires an 8-63 ASCII character password." <?% if ("WPA2_PSK_AES"==$security) echo( "selected");?> >WPA2-PSK (AES)</option>
+				<?% } else if($WPA3_enable == "true"){ ?>
+					<option value="WPA3-Personal Transition" <?% if ("WPA3-Personal Transition"==$security) echo( "selected");?> >WPA3-Personal Transition (Recommended)</option>
+					<option value="WPA3-Personal Only" <?% if ("WPA3-Personal Only"==$security) echo( "selected");?> >WPA3-Personal Only</option>
+					<option value="WPA2_PSK_AES" title="WPA requires an 8-63 ASCII character password." <?% if ("WPA2_PSK_AES"==$security) echo( "selected");?> >WPA2-PSK (AES)</option>
+				<?% } else { ?>
+					<option value="WPA2_PSK_AES" title="WPA requires an 8-63 ASCII character password." <?% if ("WPA2_PSK_AES"==$security) echo( "selected");?> >WPA2-PSK (AES) (Recommended)</option>
+				<?% } ?>
+				<?%
+				if("WPA2_Enterprise"==$security){
+					echo( '<option value="WPA2_Enterprise" title="WPA2-Enterprise uses a RADIUS servers for authentication purposes." selected >WPA2-Enterprise</option>');
+				}
+				else if("WPA_WPA2_Enterprise"==$security){
+					echo( '<option value="WPA_WPA2_Enterprise" title="WPA-WPA2-Enterprise uses a RADIUS servers for authentication purposes." selected >WPA-WPA2-Enterprise</option>');
+				}
+				?>
+			<?% } ?>
 			</select>
 		</div>
 		<div class="form-row odd" id="div_channel_switch">
