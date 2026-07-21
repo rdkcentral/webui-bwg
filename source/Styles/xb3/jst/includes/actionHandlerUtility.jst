@@ -117,22 +117,13 @@ function security_mode($encrypt_mode, $encrypt_method) {
     $security = "WPAWPA2_PSK_TKIPAES";
   }
   else if ("WPA3-Personal" == $encrypt_mode){
-    if ("AES" == $encrypt_method)
-      $security = "WPA3-Personal Only";
-    else if("AES+GCMP" == $encrypt_method)
-      $security = "WPA3-Personal Only AES_GCMP";
+    $security = "WPA3-Personal Only";
   }
   else if ("WPA3-Personal-Transition" == $encrypt_mode){
-    if ("AES" == $encrypt_method)
-      $security = "WPA3-Personal Transition";
-    else if("AES+GCMP" == $encrypt_method)
-      $security = "WPA3-Personal Transition AES_GCMP";
+    $security = "WPA3-Personal Transition";
   }
   else if ("WPA3-Personal-Compatibility" == $encrypt_mode){
-    if ("AES" == $encrypt_method)
-      $security = "WPA3-Personal Compatibility";
-    else if("AES+GCMP" == $encrypt_method)
-      $security = "WPA3-Personal Compatibility AES_GCMP";
+    $security = "WPA3-Personal Compatibility";
   }
   else {
     $security = "None";
