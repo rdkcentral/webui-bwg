@@ -837,11 +837,6 @@ wpa2psk ==> 8 to 63 Ascii characters
     if(MeshEnable == 'true' || (HCMEnable == 'Enable')){
     	$('#channel_number,input[name=channel_bandwidth]').prop("disabled", true);
     }
-    else{
-		if('<?% echo($channel_automatic); ?>' == 'true'){
-			$('input[name=channel_bandwidth]').prop("disabled", true);
-		}
-    }
 	//for Mesh WiFi integration
 	if($Mesh_Mode == 'true' || (HCMEnable == 'Enable')){
 		//disable >> Channel Selection:, Channel:, Channel Bandwidth:
