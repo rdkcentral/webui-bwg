@@ -441,12 +441,6 @@ $(document).ready(function() {
 	});
 
 	$(":radio[name='channel']").change(function() {
-		if(((MeshEnable=="false") || (HCMEnable!="Enable"))){
-			if($("#channel_automatic").is(":checked"))
-				$('input[name=channel_bandwidth]').prop("disabled", true);
-			else
-				$('input[name=channel_bandwidth]').prop("disabled", false);
-		}
 		if ($("#channel_automatic").is(":checked") || (MeshEnable=="true") || (HCMEnable=="Enable")) {
 			$("#channel_number").prop("disabled", true);
 			$("#channel_number").hide();
