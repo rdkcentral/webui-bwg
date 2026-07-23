@@ -291,6 +291,7 @@ function adjust_acs_tb(tb_summary, th_array){
 }
 
 function ajaxDo(mode,timef){
+	var token = "<?% echo(  $_SESSION['Csrf_token'] );?>";
 	switch(timef){
 			case "Today":
 				timef2="today";
