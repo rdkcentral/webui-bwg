@@ -584,7 +584,6 @@ $(document).ready(function() {
 				$("#div_change_password").hide();
 				restyle_div();
 			}
-			$("#netPassword-footnote").text($("option:selected", $(this)).attr("title"));
 		}
 		$("#netPassword-footnote").text($("option:selected", $(this)).attr("title"));
 		if(!password_mso_user){
@@ -598,14 +597,8 @@ $(document).ready(function() {
 		}
 		$("#security").find("[value^='WEP'],[value='None'],[value$='_Enterprise']").prop('disabled',true);
 		fromOther = false;
+		restyle_div();
     	});
-	if("None" == $("#security").val()) {
-		$("#network_password").val("");
-	}
-	var pwd_mso=JSON.parse(password_mso_user);
-	if(!pwd_mso && "None" == $("#security").val()){
-		$("#div_change_password").hide();
-	}
 
 	$("#password_show").change(function() {
 		var pass_val = $("#network_password").val();
