@@ -469,7 +469,7 @@ $(document).ready(function() {
 		}
 	});
 	$security_val = '<?% echo( $security); ?>';
-	var password_mso_user = '<?% echo( $password_mso_user); ?>';
+	var password_mso_user = '<?% if($password_mso_user) echo( $password_mso_user); ?>';
 	$("#security").change(function() {
 		if ("more" == $("#security").val()) {
 			// only private(1,2) SSID have show-more option
