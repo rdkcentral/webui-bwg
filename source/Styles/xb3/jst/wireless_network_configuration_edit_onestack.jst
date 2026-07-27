@@ -577,12 +577,10 @@ $(document).ready(function() {
 				$("#network_password").prop("disabled", true);
 				$("#div_change_password").show();
 				$("#div_password_show").hide();
-				restyle_div();
 			}else{
 				$("#div_password_show").show();
 				$("#network_password").prop("disabled", false);
 				$("#div_change_password").hide();
-				restyle_div();
 			}
 		}
 		$("#netPassword-footnote").text($("option:selected", $(this)).attr("title"));
