@@ -86,6 +86,7 @@ delete $wifi_param["network_pass_128"];
 
 $wifi_param = cleanJsonDms("Device.WiFi.AccessPoint.", $wifi_param);
 $wifi_param[Radio_Enable] = 'Device.WiFi.Radio.'+$rf+'.Enable';
+$axEnable = getStr("Device.WiFi.2G80211axEnable");
 $model_name		= getStr("Device.DeviceInfo.ModelName");
 $isDeviceCBR 	= ($model_name == "CGA4131COM")||($model_name == "CGA4131")||($model_name == "CGA4332COM");
 $isDeviceBWG    = ($model_name == "DPC3939B") || ($model_name == "DPC3941B");
@@ -937,7 +938,9 @@ function setResetInfo(info) {
 				else {
 					if (strstr($support_mode_2g, "ax")){
 						echo( '<option value="g,n" ');   echo( (  "g,n"==$wireless_mode)? 'selected':'');  echo('>802.11 g/n</option>');
-						echo( '<option value="g,n,ax" '); echo( ("g,n,ax"==$wireless_mode)? 'selected':''); echo('>802.11 g/n/ax</option>');
+						if ($axEnable == "true"){
+							echo( '<option value="g,n,ax" '); echo( ("g,n,ax"==$wireless_mode)? 'selected':''); echo('>802.11 g/n/ax</option>');
+						}
 					}
 					else
 					{

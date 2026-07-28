@@ -158,6 +158,7 @@ if ("false" == $wifi_value['Radio_'+$rf+'_Enable']){
 //check if support 802.11ac
 $support_mode_2g		= $wifi_value['1_SupportedStandards'];
 $support_mode_5g		= $wifi_value['2_SupportedStandards'];
+$axEnable				= getStr("Device.WiFi.2G80211axEnable");
 
 
 if ("1-11"==$possible_channels)
@@ -1088,9 +1089,13 @@ function setResetInfo(info) {
 					}				
 				}
 				else {
-					if (strstr($support_mode_2g, "ax")){
+					if (strstr($support_mode_2g, "ax") && ($axEnable == "true")){
 						echo( '<option value="g,n" ');   echo( (  "g,n"==$wireless_mode)? 'selected':'');  echo('>802.11 g/n</option>');
 						echo( '<option value="g,n,ax" '); echo( ("g,n,ax"==$wireless_mode)? 'selected':''); echo('>802.11 g/n/ax</option>');
+					}
+					else if (strstr($support_mode_2g, "ax") && ($axEnable == "false"))
+					{
+						echo( '<option value="g,n" ');   echo( (("g,n"==$wireless_mode) || ("g,n,ax"==$wireless_mode))? 'selected':'');  echo('>802.11 g/n</option>');
 					}
 					else
 					{

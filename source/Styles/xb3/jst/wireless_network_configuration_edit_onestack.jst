@@ -1168,15 +1168,14 @@ function setResetInfo(info) {
 					}
 				}
 				else {
-					if ((strstr($supported_mode, "ax")) && ($axEnable == "true")){
-						if (strstr($supported_mode, "be")){
-							echo( '<option value="g,n,ax,be" ');   echo( (  "g,n,ax,be"==$wireless_mode)? 'selected':'');  echo('>802.11 g/n/ax/be</option>'); 
+					if (strstr($supported_mode, "ax")){
+						echo( '<option value="g,n" ');   echo( (  "g,n"==$wireless_mode)? 'selected':'');  echo('>802.11 g/n</option>');
+						if ($axEnable == "true"){
+							if (strstr($supported_mode, "be")){
+								echo( '<option value="g,n,ax,be" ');   echo( (  "g,n,ax,be"==$wireless_mode)? 'selected':'');  echo('>802.11 g/n/ax/be</option>'); 
+							}
+							echo( '<option value="g,n,ax" '); echo( ("g,n,ax"==$wireless_mode)? 'selected':''); echo('>802.11 g/n/ax</option>');
 						}
-						echo( '<option value="g,n" ');   echo( (  "g,n"==$wireless_mode)? 'selected':'');  echo('>802.11 g/n</option>');
-						echo( '<option value="g,n,ax" '); echo( ("g,n,ax"==$wireless_mode)? 'selected':''); echo('>802.11 g/n/ax</option>');
-					}
-					else if ((strstr($supported_mode, "ax")) && ($axEnable == "false")){
-						echo( '<option value="g,n" ');   echo( (  "g,n"==$wireless_mode)? 'selected':'');  echo('>802.11 g/n</option>');
 					}
 					else
 					{
