@@ -469,7 +469,7 @@ $(document).ready(function() {
 		}
 	});
 	$security_val = '<?% echo( $security); ?>';
-	var password_mso_user = '<?% echo( $password_mso_user); ?>';
+	var password_mso_user = '<?% if($password_mso_user) echo( $password_mso_user); ?>';
 	$("#security").change(function() {
 		if ("more" == $("#security").val()) {
 			// only private(1,2) SSID have show-more option
@@ -577,14 +577,11 @@ $(document).ready(function() {
 				$("#network_password").prop("disabled", true);
 				$("#div_change_password").show();
 				$("#div_password_show").hide();
-				restyle_div();
 			}else{
 				$("#div_password_show").show();
 				$("#network_password").prop("disabled", false);
 				$("#div_change_password").hide();
-				restyle_div();
 			}
-			$("#netPassword-footnote").text($("option:selected", $(this)).attr("title"));
 		}
 		$("#netPassword-footnote").text($("option:selected", $(this)).attr("title"));
 		if(!password_mso_user){
@@ -598,14 +595,9 @@ $(document).ready(function() {
 		}
 		$("#security").find("[value^='WEP'],[value='None'],[value$='_Enterprise']").prop('disabled',true);
 		fromOther = false;
+		restyle_div();
     	});
-	if("None" == $("#security").val()) {
-		$("#network_password").val("");
-	}
-	var pwd_mso=JSON.parse(password_mso_user);
-	if(!pwd_mso && "None" == $("#security").val()){
-		$("#div_change_password").hide();
-	}
+	$("#security").trigger("change");
 
 	$("#password_show").change(function() {
 		var pass_val = $("#network_password").val();
