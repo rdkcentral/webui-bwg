@@ -144,12 +144,12 @@ function encrypt_map($mode, $method)
 		return "WPA2-ENTRP ("+$method+")"; 
 	case "WPA-WPA2-Enterprise":
 		return "WPAWPA2-ENTRP ("+$method+")";
-        case "WPA3-Personal":
+	case "WPA3-Personal":
 		return "WPA3-Personal Only";
 	case "WPA3-Personal-Transition":
-                return "WPA3-Personal Transition";
-        case "WPA3-Personal-Compatibility":
-                return "WPA3-Personal Compatibility";
+		return "WPA3-Personal Transition";
+	case "WPA3-Personal-Compatibility":
+		return "WPA3-Personal Compatibility";
 	default:
 		return "WPAWPA2-PSK (TKIP/AES)";
 	}
