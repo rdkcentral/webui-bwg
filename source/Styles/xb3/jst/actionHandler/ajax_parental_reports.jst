@@ -30,28 +30,40 @@ $mode=$_GET['mode'];
 $timef=$_GET['timef'];
 var $maxtime;
 var $mintime;
+
+$timef_key = "";
 switch($timef){			//	[$mintime, $maxtime)
+	case "today":
 	case "Today":
 		$maxtime=strtotime("now");
 		$mintime=strtotime("today");
+		$timef_key = "today";
 	break;
+	case "yesterday":
 	case "Yesterday":
 		$maxtime=strtotime("today");
 		$mintime=strtotime("yesterday");
+		$timef_key = "yesterday";
 	break;
+	case "week":
 	case "Last week":
 		$maxtime=strtotime("now");
 		$mintime=strtotime("last Monday");
+		$timef_key = "week";
 	break;
+	case "month":
 	case "Last month":
 		$maxtime=strtotime("now");
 		$mintime=strtotime("last month");
+		$timef_key = "month";
 	break;
+	case "last90":
 	case "Last 90 days":
 		//zqiu: last 90 days include today
 		//$maxtime=strtotime("today");
 		$maxtime=strtotime("now");
 		$mintime=strtotime("-90 days");
+		$timef_key = "last90";
 	break;
 	default:
 		die('Not allowed!');
@@ -112,7 +124,7 @@ fclose($file);
 
 $firewall_log = array_reverse($Log);
 // echo "firewall log ...: \n";
-$fh=fopen("/tmp/parental_reports_"+$mode+"_"+$timef+".txt","w");
+$fh=fopen("/tmp/parental_reports_"+$mode+"_"+$timef_key+".txt","w");
 for($key in $firewall_log) { $value=$firewall_log[$key];/*p2j-foreach*/
 	fwrite($fh, $value["Des"]+", "+$value["Count"]+" Attempts, "+$value["time"]+"\t"+$value["Type"]+"\r\n");
 }
