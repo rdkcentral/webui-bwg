@@ -29,11 +29,9 @@
 <?% include('includes/nav.jst'); ?>
 
 <?%
-if ( "CGA4332COM"  == getStr("Device.DeviceInfo.ModelName"))
-{
-        echo( '<script type="text/javascript">alert("Gateway does not support Wi-Fi Protected Setup (WPS) ! You will be redirected to WiFi status page ..");location.href="wireless_network_configuration.jst";</script>');
-        exit(0);
-}
+echo( '<script type="text/javascript">alert("Gateway does not support Wi-Fi Protected Setup (WPS) ! You will be redirected to WiFi status page ..");location.href="wireless_network_configuration.jst";</script>');
+exit(0);
+
 // $ssids			= explode(",", getInstanceIds("Device.WiFi.SSID."));
 $ssids		=[1,2]/*p2j-array*/;	//Currently, only SSID.1(2.4G) and SSID.2(5G) are involved with WPS
 $wps_enabled	= "false";
