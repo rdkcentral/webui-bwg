@@ -920,11 +920,20 @@ $(document).ready(function() {
 			$('[name="DFS_Channel_Selection"]').prop("disabled", true);
 		}
 
+		$dfsBoot= '<?% echo($dfsAtBootup); ?>';
 		if ("165" == $(this).val()){
 			$('[name="channel_bandwidth1"]:not([value="20MHz"])').prop("disabled", true);
 		}
 		else{
+			/*
+			 * Re-enable bandwidth options for non-165 channels,
+			 * but preserve DFS-at-boot restrictions.
+			 */
 			$('[name="channel_bandwidth1"]').prop("disabled", false);
+
+			if ($dfsBoot == "false") {
+				$("#channel_bandwidth3").prop("disabled", true);
+			}
 		}
 	});
 
