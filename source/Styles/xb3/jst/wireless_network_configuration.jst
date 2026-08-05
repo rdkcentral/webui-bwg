@@ -810,6 +810,7 @@ $(document).ready(function() {
 		}
 
 		$dfsBoot= '<?% echo($dfsAtBootup); ?>';
+		var isDfsPlatformSupported = ("<?% echo( $DFS_Support1);?>" == "true");
 		if ("165" == $(this).val()){
 			$('[name="channel_bandwidth1"]:not([value="20MHz"])').prop("disabled", true);
 		}
@@ -820,7 +821,7 @@ $(document).ready(function() {
 			 */
 			$('[name="channel_bandwidth1"]').prop("disabled", false);
 
-			if ($dfsBoot == "false") {
+			if (isDfsPlatformSupported && $dfsBoot == "false") {
 				$("#channel_bandwidth3").prop("disabled", true);
 			}
 		}
@@ -833,7 +834,7 @@ $(document).ready(function() {
 	else{
 		$('[name="channel_bandwidth1"]').prop("disabled", false);
 
-		if ($dfsBoot == "false") {
+		if (("<?% echo( $DFS_Support1);?>" == "true") && $dfsBoot == "false") {
 			$("#channel_bandwidth3").prop("disabled", true);
 		}
 	}
