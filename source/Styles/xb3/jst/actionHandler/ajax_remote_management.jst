@@ -41,7 +41,7 @@ if($_POST['https'] == 'false'){
 	$_SESSION['rm'] = true;
 }
 $validation = true;
-if (($modelName != "CGA4131COM") && ($modelName != "CGA4332COM") && ($modelName != "DPC3941B") && ($modelName != "DPC3939B")) { 
+if (($modelName != "CGA4131COM") && ($modelName != "CGA4332COM") && ($modelName != "DPC3941B") && ($modelName != "DPC3939B") && ($modelName != "CGM601TCOM") && ($modelName != "SG417DBCT")) {
 	if($validation) $validation = isValInArray($_POST['telnet'], ['true', 'false', 'notset']/*p2j-array*/);
 }
 //if($validation) $validation = isValInArray($_POST['ssh'], array('true', 'false', 'notset'));

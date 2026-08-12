@@ -130,22 +130,24 @@ $(document).ready(function() {
 	});
 	$("#https").val(HTTPSPORT).prop("disabled", !HTTPS);
 
-	$("#telnet1_switch").radioswitch({
-		id: "telnet1-switch",
-		radio_name: "telnet1",
-		id_on: "telnet1_enabled",
-		id_off: "telnet1_disabled",
-		title_on: "Enable Telnet",
-		title_off: "Disable Telnet",
-		state: TELNET ? "on" : "off"
-	}).change(function() {
-		var isUTELDisabled = $(this).radioswitch("getState").on === false;
-		if(isUTELDisabled) {
-			//document.getElementById('telnet').disabled = true;
-		} else {
-			//document.getElementById('telnet').disabled = false;
-		}
-	});
+	if ($("#telnet1_switch").length) {
+		$("#telnet1_switch").radioswitch({
+			id: "telnet1-switch",
+			radio_name: "telnet1",
+			id_on: "telnet1_enabled",
+			id_off: "telnet1_disabled",
+			title_on: "Enable Telnet",
+			title_off: "Disable Telnet",
+			state: TELNET ? "on" : "off"
+		}).change(function() {
+			var isUTELDisabled = $(this).radioswitch("getState").on === false;
+			if(isUTELDisabled) {
+				//document.getElementById('telnet').disabled = true;
+			} else {
+				//document.getElementById('telnet').disabled = false;
+			}
+		});
+	}
 
 	$("#ssh1_switch").radioswitch({
 		id: "ssh1-switch",
@@ -600,8 +602,11 @@ $(".btn").click(function(){
 		return;
 	}
 */	
-	var telnet = $("#telnet1_switch").radioswitch("getState").on;
-	if (TELNET==telnet) telnet="notset";
+	var telnet = "notset";
+	if ($("#telnet1_switch").length) {
+		var telnetState = $("#telnet1_switch").radioswitch("getState").on;
+		if (TELNET !== telnetState) telnet = telnetState;
+	}
 	var ssh ="notset";
 
 	var https = $("#https_switch").radioswitch("getState").on;
