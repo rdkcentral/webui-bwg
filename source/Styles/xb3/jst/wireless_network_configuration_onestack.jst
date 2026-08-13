@@ -490,6 +490,7 @@ $(document).ready(function() {
     comcast.page.init("Gateway > Connection > WiFi", "nav-wifi-config");
 
     var isBridge = "<?% echo( $_SESSION["lanMode"]); ?>";
+	var $dfsBoot = '<?% echo($dfsAtBootup); ?>';
     $ForceDisable = '<?% echo( $ForceDisable); ?>';
     $Mesh_Mode = '<?% echo( $Mesh_Mode); ?>';
     var MeshEnable='<?% echo( $Mesh_Enable); ?>';

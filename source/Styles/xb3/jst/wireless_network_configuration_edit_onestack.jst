@@ -388,6 +388,7 @@ $(document).ready(function() {
     comcast.page.init("Gateway > Connection > Wireless > Edit <?% echo( $radio_band); ?> GHz", "nav-wifi-config");
 	$('#pop_dialog').hide();
 	$Mesh_Mode = '<?% echo( $Mesh_Mode); ?>';
+	var $dfsBoot = '<?% echo($dfsAtBootup); ?>';
 	var MeshEnable= '<?% echo( $Mesh_Enable); ?>';
     var HCMEnable= '<?% echo( $HCM_Enable); ?>';
 	var radio_check = '<?% echo( $radio_band); ?>';
