@@ -496,6 +496,14 @@ $(document).ready(function() {
 		$('[name="DCS_Channel_Selection1"]').prop("disabled", true);
 	}
 
+	$('[name="DFS_boot_disabled"]').change(function() {
+		if($("#DFS_boot_disabled").is(":checked"))  {
+			$("#channel_bandwidth3").prop("disabled", true);
+		}else{
+			$("#channel_bandwidth3").prop("disabled", false);
+		}
+	}).trigger("change");
+
     $("[name='channel']").change(function() {
 		if($("#channel_automatic").is(":checked") || (MeshEnable=="true")) {
 			document.getElementById('channel_number').disabled = true;
@@ -579,7 +587,7 @@ $(document).ready(function() {
 		}
 	}).trigger("change");
 	
-	$("[name='channel_bandwidth1']").change(function() {
+	$('[name="channel_bandwidth1"]').change(function() {
 		//enable all channel first
 		$("#channel_number1 option").prop("disabled", false);
                 if (("true"=="<?% echo( $DFS_Support1); ?>") && ("true"=="<?% echo( $DFS_Enable1); ?>")) {
@@ -609,6 +617,23 @@ $(document).ready(function() {
                         }
 			// NOT 20MHz, disable channel 165
 			$("#channel_number1").find("[value='165']").prop("disabled", true).prop("selected", false);
+		}
+		else {
+			//20MHz, disable channels 116, 140 Legacy Interop Disabled Channels
+			//$("#channel_number1").find("[value='116'],[value='140']").prop("disabled", true).prop("selected", false);
+		}
+
+		var selectedChannel1 = $("#channel_number1").val();
+
+		if ($("#channel_number1 option:selected").length === 0 || $("#channel_number1 option:selected").prop("disabled")) {
+			var firstEnabled1 = $("#channel_number1 option:not(:disabled):first").val();
+			if (firstEnabled1) $("#channel_number1").val(firstEnabled1);
+		}
+
+		if (selectedChannel1 !== $("#channel_number1").val()) {
+			window.setTimeout(function() {
+				$("#channel_number1").trigger("change", {silent:true});
+			}, 0);
 		}
 	}).trigger("change");
 	
@@ -691,10 +716,10 @@ $(document).ready(function() {
 	
 	// disable NOT 20MHz channel if 165
 	// Warning for DFS channel (52-140)
-	$("#channel_number1").change(function(){
+	$("#channel_number1").change(function(event, data){
 		var channel = $("#channel_number1 option:selected").val();
 
-		if(channel >= 52 && channel <= 140 ) {
+		if ((!data || !data.silent) && channel >= 52 && channel <= 140 ) {
 			jConfirm(
 				"WARNING:<br/> You are selecting a Dynamic Frequency Selection (DFS) Channel (52-140). Some Wi-Fi devices do not support DFS channels in the 5 GHz band. For those devices that do not support DFS channels, the 5 GHz Wi-Fi Network Name (SSID) will not be displayed on the list of available networks. Do you wish to continue?"
 				, "Are You Sure?"
