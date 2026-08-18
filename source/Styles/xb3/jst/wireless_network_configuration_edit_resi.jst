@@ -375,9 +375,9 @@ $(document).ready(function() {
 	var MeshEnable= '<?% echo( $Mesh_Enable); ?>';
 
 	/**
-	* Discription:
-	* disable, unselect entries of $disableChannelList and set $channel
-	*/
+	 * Description:
+	 * Disable/unselect entries in $disableChannelList and, if the current value is disabled, set it to $channel.
+	 */
 	function checkAndSetChannelNumber($disableChannelList, $channel){
 		$.each($disableChannelList, function( index, value ) {
 			$("#channel_number").find("[value='"+value+"']").prop("disabled", true).prop("selected", false);
@@ -624,7 +624,7 @@ $(document).ready(function() {
 	$("[name='channel_bandwidth1']").change(function() {
 		//enable all channel first
 		$("#channel_number option").prop("disabled", false);
-		if (("true"=="<?% echo( $DFS_Support1); ?>") && ("true"=="<?% echo( $dfsEnable); ?>")) {
+		if (("true"=="<?% echo( $DFS_Support1); ?>") && ("true"=="<?% echo( $DFS_Enable1); ?>") && ("true"=="<?% echo( $dfsEnable); ?>")) {
 			$("#channel_number").find("[value='52'],[value='56'],[value='60'],[value='64'],[value='100'],[value='104'],[value='108'],[value='112'],[value='116'],[value='120'],[value='124'],[value='128'],[value='132'],[value='136'],[value='140'],[value='144']").prop("disabled", false);
 		}else{
 			$("#channel_number").find("[value='52'],[value='56'],[value='60'],[value='64'],[value='100'],[value='104'],[value='108'],[value='112'],[value='116'],[value='120'],[value='124'],[value='128'],[value='132'],[value='136'],[value='140'],[value='144']").prop("disabled", true).prop("selected", false);
@@ -659,6 +659,7 @@ $(document).ready(function() {
 			//if Channel Bandwidth is 20MHz DFS Channels (Channels 50 - 144) should be greyed out
 			//$("#channel_number").val('36');
 		}
+		$("#channel_number").trigger("change", {silent:true});
 	}).trigger("change");
 	$("#channel_number").change(function() {
 		var isDfsPlatformSupported = ("<?% echo( $DFS_Support1); ?>" == "true");
@@ -869,7 +870,7 @@ function init_form()
 	restyle_div();
 
 	if ("true"!="<?% echo( $DFS_Support1); ?>" || "true"!="<?% echo( $DFS_Enable1); ?>") {
-		$("#channel_number [value='52'],[value='56'],[value='60'],[value='64'],[value='100'],[value='104'],[value='108'],[value='112'],[value='116'],[value='120'],[value='124'],[value='128'],[value='132'],[value='136'],[value='140'],[value='144']").prop("disabled", true);
+		$("#channel_number").find("[value='52'],[value='56'],[value='60'],[value='64'],[value='100'],[value='104'],[value='108'],[value='112'],[value='116'],[value='120'],[value='124'],[value='128'],[value='132'],[value='136'],[value='140'],[value='144']").prop("disabled", true);
 	}
 	//disable some channel as per extension channel when NOT 20MHz, only when can't set extension channel
 	if ("20MHz" != channel_bandwidth){
