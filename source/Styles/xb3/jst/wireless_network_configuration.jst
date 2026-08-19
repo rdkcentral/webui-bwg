@@ -351,6 +351,13 @@ else {
 	        array_remove($ssids, 0);
 	}
 
+$mac_ssid_data = getValidatedAllowedNumericQueryValue('mac_ssid', $ssids);
+$allowed_mac_ssids = $mac_ssid_data['allowedValues'];
+$mac_ssid_v = $mac_ssid_data['value'];
+
+$mac_ssid_v_js = htmlspecialchars(json_encode($mac_ssid_v), ENT_NOQUOTES, 'UTF-8');
+$allowed_mac_ssids_js = htmlspecialchars(json_encode($allowed_mac_ssids), ENT_NOQUOTES, 'UTF-8');
+
 ?>
  
 <script type="text/javascript">
@@ -870,12 +877,10 @@ $(document).ready(function() {
 		$('#channel_automatic, #channel_manual, #channel_automatic1, #channel_manual1, #channel_number, #channel_number1, #auto_channel_number, #auto_channel_number1, input[name=channel_bandwidth], input[name=channel_bandwidth1]').prop("disabled", true);
 	}
 });
-<?%
-$mac_ssid_v = $_GET['mac_ssid'];
-?>
 setTimeout(function() {
-	var mac_ssid_GET	= "<?% echo( $mac_ssid_v);?>";
-	if(mac_ssid_GET == '3' || mac_ssid_GET == '5') {
+	var mac_ssid_GET = <?% echo( $mac_ssid_v_js);?>;
+	var allowedMacSsids = <?% echo( $allowed_mac_ssids_js);?>;
+	if (typeof mac_ssid_GET === "string" && allowedMacSsids.includes(mac_ssid_GET)) {
 		$("#mac_ssid").val(mac_ssid_GET);
 	}
 	update_Wi_Fi_control_list();
