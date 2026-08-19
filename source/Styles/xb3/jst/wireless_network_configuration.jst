@@ -890,8 +890,18 @@ function set_config(jsConfig)
 		url: "actionHandler/ajaxSet_wireless_network_configuration.jst",
 		data: { configInfo: jsConfig,csrfp_token: token },
 		success: function(msg) {
-			jHide();
-			window.location.href = "wireless_network_configuration.jst";
+			if(isIE()){
+				var jsConfigTxt = JSON.stringify(jsConfig);
+				var jsonConfig = jQuery.parseJSON(jsConfigTxt);
+			}else{
+				var jsonConfig = JSON.parse(jsConfig);
+			}
+			var location_url = "wireless_network_configuration.jst";
+			if(jsonConfig.target == "save_filter") location_url += "?mac_ssid="+jsonConfig.ssid_number;
+			setTimeout(function(){
+				jHide();
+				location.href=location_url;
+			}, 5000);
 		},
 		error: function(){            
 			jHide();
