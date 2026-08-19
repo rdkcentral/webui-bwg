@@ -1034,40 +1034,17 @@ function cleanJsonDms($dm_key, $param_json) {
 	return $param_json;
 }
 
-/**
-* Description:
-* normalize an allowlist of numeric string values and validate a query param against it.
-*
-* return: {
-*   'allowedValues': normalized allowlist,
-*   'value': validated query value or empty string
-* }
-*/
-function getValidatedAllowedNumericQueryValue($queryKey, $allowedValues) {
-	var $normalizedAllowedValues = []/*p2j-array*/;
-	for (var $keytmp in $allowedValues) {
-		var $allowedValue = $allowedValues[$keytmp];/*p2j-foreach*/
-		var $normalizedValue = strval(intval($allowedValue));
-		if ((string)$allowedValue === $normalizedValue) {
-			array_push($normalizedAllowedValues, $normalizedValue);
-		}
+function getValidatedMacSsidValueJs() {
+	var $mac_ssid_v = "";
+	if(isset($_GET['mac_ssid']) && is_numeric($_GET['mac_ssid'])) {
+		$mac_ssid_v = intval($_GET['mac_ssid']);
+		if ($mac_ssid_v < 1 || $mac_ssid_v > 17)
+			$mac_ssid_v = "";
+		else
+			$mac_ssid_v = String($mac_ssid_v);
 	}
 
-	var $validatedValue = "";
-	if (isset($_GET[$queryKey]) && is_scalar($_GET[$queryKey])) {
-		var $candidateValue = trim((string)$_GET[$queryKey]);
-		if (ctype_digit($candidateValue)) {
-			$candidateValue = strval(intval($candidateValue));
-			if (in_array($candidateValue, $normalizedAllowedValues, true)) {
-				$validatedValue = $candidateValue;
-			}
-		}
-	}
-
-	return {
-		'allowedValues': $normalizedAllowedValues,
-		'value': $validatedValue
-	};
+	return htmlspecialchars(json_encode($mac_ssid_v), ENT_NOQUOTES, 'UTF-8');
 }
 
 /**
