@@ -41,8 +41,13 @@ if($_POST['https'] == 'false'){
 	$_SESSION['rm'] = true;
 }
 $validation = true;
-if (($modelName != "CGA4131COM") && ($modelName != "CGA4332COM") && ($modelName != "DPC3941B") && ($modelName != "DPC3939B")) { 
+if (!isset($_POST['telnet'])) $_POST['telnet'] = 'notset';
+$telnetAllowed = (($modelName != "CGA4131COM") && ($modelName != "CGA4332COM") && ($modelName != "DPC3941B") && ($modelName != "DPC3939B") && ($modelName != "CGM601TCOM") && ($modelName != "SG417DBCT"));
+if ($telnetAllowed) {
 	if($validation) $validation = isValInArray($_POST['telnet'], ['true', 'false', 'notset']/*p2j-array*/);
+} else {
+	// Telnet UI is hidden for these models; prevent crafted requests from changing it.
+	$_POST['telnet'] = 'notset';
 }
 //if($validation) $validation = isValInArray($_POST['ssh'], array('true', 'false', 'notset'));
 if($validation) $validation = isValInArray($_POST['allowtype'], ['true', 'false', 'notset']/*p2j-array*/);

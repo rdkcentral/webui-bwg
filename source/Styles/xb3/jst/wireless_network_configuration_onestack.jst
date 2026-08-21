@@ -490,6 +490,7 @@ $(document).ready(function() {
     comcast.page.init("Gateway > Connection > WiFi", "nav-wifi-config");
 
     var isBridge = "<?% echo( $_SESSION["lanMode"]); ?>";
+	var $dfsBoot = '<?% echo($dfsAtBootup); ?>';
     $ForceDisable = '<?% echo( $ForceDisable); ?>';
     $Mesh_Mode = '<?% echo( $Mesh_Mode); ?>';
     var MeshEnable='<?% echo( $Mesh_Enable); ?>';
@@ -920,11 +921,21 @@ $(document).ready(function() {
 			$('[name="DFS_Channel_Selection"]').prop("disabled", true);
 		}
 
+		$dfsBoot= '<?% echo($dfsAtBootup); ?>';
+		var isDfsPlatformSupported = ("<?% echo( $DFS_Support1);?>" == "true");
 		if ("165" == $(this).val()){
 			$('[name="channel_bandwidth1"]:not([value="20MHz"])').prop("disabled", true);
 		}
 		else{
+			/*
+			 * Re-enable bandwidth options for non-165 channels,
+			 * but preserve DFS-at-boot restrictions.
+			 */
 			$('[name="channel_bandwidth1"]').prop("disabled", false);
+
+			if (isDfsPlatformSupported && $dfsBoot == "false") {
+				$("#channel_bandwidth3").prop("disabled", true);
+			}
 		}
 	});
 
@@ -1428,9 +1439,9 @@ if($OperatingChannelBandwidth == "6GHz")
 	} 
 	?>
 	</table>
-	<div class="btn-group hidden">
+	<!--div class="btn-group hidden">
 		<a href="wireless_network_configuration_wps.jst" class="btn">Add Wi-Fi Protected Setup (WPS) Client</a>
-	</div>
+	</div-->
 </div> <!-- end .module -->
 
 <div class="module data data div_public_wifi">

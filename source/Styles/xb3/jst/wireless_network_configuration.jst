@@ -37,6 +37,7 @@ $ForceDisable = getStr("Device.WiFi.X_RDK-CENTRAL_COM_ForceDisable");
 <?%
 $modelName= getStr("Device.DeviceInfo.ModelName");
 $axEnable = getStr("Device.WiFi.2G80211axEnable");
+$dfsAtBootup= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFSatBootUp.Enable");
 /*********************get WiFi parameters***************************/
 $wifi_param = {
 	"feq_band" 			: "Device.WiFi.Radio.1.OperatingFrequencyBand",
@@ -401,6 +402,7 @@ $(document).ready(function() {
     comcast.page.init("Gateway > Connection > WiFi", "nav-wifi-config");
 
     var isBridge = "<?% echo( $_SESSION["lanMode"]); ?>";
+	var $dfsBoot = '<?% echo($dfsAtBootup); ?>';
     $ForceDisable = '<?% echo( $ForceDisable); ?>';
 
 	$("#radio24_switch").radioswitch({
@@ -808,11 +810,21 @@ $(document).ready(function() {
 			$('[name="DFS_Channel_Selection"]').prop("disabled", true);
 		}
 
+		$dfsBoot= '<?% echo($dfsAtBootup); ?>';
+		var isDfsPlatformSupported = ("<?% echo( $DFS_Support1);?>" == "true");
 		if ("165" == $(this).val()){
 			$('[name="channel_bandwidth1"]:not([value="20MHz"])').prop("disabled", true);
 		}
 		else{
+			/*
+			 * Re-enable bandwidth options for non-165 channels,
+			 * but preserve DFS-at-boot restrictions.
+			 */
 			$('[name="channel_bandwidth1"]').prop("disabled", false);
+
+			if (isDfsPlatformSupported && $dfsBoot == "false") {
+				$("#channel_bandwidth3").prop("disabled", true);
+			}
 		}
 	});
 
@@ -822,6 +834,10 @@ $(document).ready(function() {
 	}
 	else{
 		$('[name="channel_bandwidth1"]').prop("disabled", false);
+
+		if (("<?% echo( $DFS_Support1);?>" == "true") && $dfsBoot == "false") {
+			$("#channel_bandwidth3").prop("disabled", true);
+		}
 	}
 
 	// now we can show target content
