@@ -238,6 +238,7 @@ $WPA3_enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WPA3_Perso
 $WPA3_compatibility_enable = getStr("Device.WiFi.WPA3_Personal_Compatibility");
 $dfsAtBootup= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFSatBootUp.Enable");
 $dfsEnable= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFS.Enable");
+$partnerId= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId");
 if(($id == 17) && ($OperatingChannelBandwidth == "6GHz") && (strpos($partnerId, "sky-") === false))
 $possible_channels = "5,37,69,101,133,165,197";
 ?>
