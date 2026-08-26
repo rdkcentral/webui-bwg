@@ -57,10 +57,10 @@
 		$fileExtension=$fileExplode[1];
 		$restoreStatus=-1;
 		if (!strcasecmp($fileExtension,"cf2")) {
-			$restoreStatus = exec('save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]+ '> /dev/null 2>&1 ; echo $?');
+			$restoreStatus = exec('/usr/bin/save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]+ '> /dev/null 2>&1 ; echo $?');
 		}
 		else if (!strcasecmp($fileExtension,"cfg")) {
-			$restoreStatus = exec('save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]+ '> /dev/null 2>&1 ; echo $?');
+			$restoreStatus = exec('/usr/bin/save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]+ '> /dev/null 2>&1 ; echo $?');
 		}
                 if($restoreStatus==0)
                 {

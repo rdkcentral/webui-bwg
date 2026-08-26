@@ -31,7 +31,7 @@ if (($_POST['FileName'] != "") && ($_POST['UserInputPassword'] != "")) {
 	$Password = $_POST['UserInputPassword'];
 	$output = ""; //Fail by default
 	if(preg_match('/^[a-zA-Z0-9]{8,20}$/', $Password)==1 && preg_match('/^.*[a-z].*$/', $Password)==1 && preg_match('/^.*[A-Z].*$/', $Password)==1 && preg_match('/^.*[0-9].*$/', $Password)==1 && (preg_match('/^.*[a-z].*$/', $Filename)==1 || preg_match('/^.*[A-Z].*$/', $Filename)==1 || preg_match('/^.*[0-9].*$/', $Filename)==1)) {
-		$command = "save_restore_config save"+" "+escapeshellarg($Filename)+" "+escapeshellarg($Password);
+		$command = "/usr/bin/save_restore_config save"+" "+escapeshellarg($Filename)+" "+escapeshellarg($Password);
                 $output = exec($command);
         }
         if ($output == "") {
