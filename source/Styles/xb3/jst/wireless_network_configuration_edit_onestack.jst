@@ -780,14 +780,24 @@ $(document).ready(function() {
 		return str.indexOf("cablewifi") == -1 && str.indexOf("twcwifi") == -1 && str.indexOf("optimumwifi") == -1 && str.indexOf("xfinity") == -1 && str.indexOf("xfinitywifi") == -1 ;
 		//return value.toLowerCase().indexOf("optimumwifi")==-1 && value.toLowerCase().indexOf("twcwifi")==-1 && value.toLowerCase().indexOf("cablewifi")==-1;
 	}, 'SSID containing "optimumwifi", "TWCWiFi", "cablewifi", "xfinity" and "xfinitywifi" are reserved !');
-	<?%
-		echo("$.validator.addMethod('not_defaulSSID', function(value, element, param) {\
-		return value.toLowerCase() != '"+$defaultSSID+"'.toLowerCase();\
-    	}, 'Choose a different Network Name (SSID) than the one provided on your gateway.');\
-		$.validator.addMethod('not_defaulPassword', function(value, element, param) {\
-		return value != '"+$defaultKeyPassphrase+"';\
-    	}, 'Choose a different Network Password than the one provided on your gateway.');");
-	?>
+    if ("true" === "<?% echo($WifiPersonalizationEnable); ?>") {
+        $.validator.addMethod("not_defaulSSID", function(value, element, param) {
+	        return value.toLowerCase() != "<?% echo( $defaultSSID); ?>".toLowerCase();
+	    }, 'Choose a different Network Name (SSID) than the one provided on your gateway.');
+
+        $.validator.addMethod("not_defaulPassword", function(value, element, param) {
+			return value != "<?% echo( $defaultKeyPassphrase); ?>";
+		}, 'Choose a different Network Password than the one provided on your gateway.');
+    }
+    else {
+        $.validator.addMethod("not_defaulSSID", function(value, element, param) {
+			return true;
+        }, '');
+
+        $.validator.addMethod("not_defaulPassword", function(value, element, param) {
+			return true;
+        }, '');
+	}
     // XFSETUP HOME xfinitywifi cablewifi
     // a term starting with the following combination of text in uppercase or lowercase should not be allowed
 	/* $.validator.addMethod("not_XFSETUP", function(value, element, param) {
