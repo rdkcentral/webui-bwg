@@ -318,10 +318,15 @@ function sec2dhms($sec)
 		<span class="readonlyLabel">Default Password:</span>
 		<span class="value"><?% echo( $wifi_value['DefaultKeyPassphrase'] );?></span>
 	</div>
+    <?%
+        $modelName= getStr("Device.DeviceInfo.ModelName");
+        if ($modelName != "CGM601TCOM") {
+    ?>
 	<div class="form-row ">
 		<span class="readonlyLabel">WPS PIN:</span>
 		<span class="value"><?% echo( $wifi_value['WPS_Pin'] );?></span>
 	</div>
+    <?% } ?>
 	<div class="form-row odd">
 		<span class="readonlyLabel">Serial Number:</span>
 		<span class="value"><?% echo(getStr("Device.DeviceInfo.SerialNumber"));?></span>
