@@ -55,12 +55,16 @@
 		exec('cp '+$_FILES['file']['tmp_name']+' '+$target);
                 $fileExplode=explode(".",$_FILES['file']['name']);
 		$fileExtension=$fileExplode[1];
+		$restoreOutput = [];
 		$restoreStatus=-1;
 		if (!strcasecmp($fileExtension,"cf2")) {
-			$restoreStatus = exec('save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]+ '> /dev/null 2>&1 ; echo $?');
+			$restoreOutput = exec('save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]);
 		}
 		else if (!strcasecmp($fileExtension,"cfg")) {
-			$restoreStatus = exec('save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]+ '> /dev/null 2>&1 ; echo $?');
+			$restoreOutput = exec('save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]);
+				}
+				if ($restoreOutput.length > 0) {
+					$restoreStatus = Number(trim($restoreOutput[0]));
 		}
                 if($restoreStatus==0)
                 {
@@ -169,4 +173,3 @@
 		</div>
 	</body>
 </html>
-
