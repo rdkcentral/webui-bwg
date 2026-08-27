@@ -24,25 +24,24 @@
 	$restoreStatus = 0;
 	$failedAttempts = Number(getStr("Device.Users.User.1.NumOfRestoreFailedAttempt"));
 	session_start();
-        if (!isset($_SESSION["loginuser"])) {
+	if (!isset($_SESSION["loginuser"])) {
 		echo( '<script type="text/javascript">alert("Please Login First!"); location.href="index.jst";</script>');
 		exit(0);
 	}
 
-        function randString() {
-            characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-            result = '';
-            const charactersLength = characters.length;
-            for ( i = 0; i < 6; i++ ) {
-                result += characters.charAt(Math.floor(Math.random() * charactersLength));
-            }
-            return result;
-        }
+	function randString() {
+		characters ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+		result = '';
+		const charactersLength = characters.length;
+		for ( i = 0; i < 6; i++ ) {
+			result += characters.charAt(Math.floor(Math.random() * charactersLength));
+		}
+		return result;
+	}
 
 	ini_set('upload_tmp_dir','/var/tmp/');
 	$target = '/var/tmp/';
 	$target = $target+randString()+'.conf';
-
 
 	if($_FILES['file']['error']>0){
 		echo( "Return Code: "+$_FILES["file"]["error"]);
@@ -53,23 +52,22 @@
 		$restoreStatus = 3;
 	} else {
 		exec('cp '+$_FILES['file']['tmp_name']+' '+$target);
-                $fileExplode=explode(".",$_FILES['file']['name']);
+		$fileExplode=explode(".",$_FILES['file']['name']);
 		$fileExtension=$fileExplode[1];
-		$restoreOutput = [];
 		$restoreStatus=-1;
 		if (!strcasecmp($fileExtension,"cf2")) {
-			$restoreOutput = exec('save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]);
+			$restoreOutput = exec('/usr/bin/save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]);
 		}
 		else if (!strcasecmp($fileExtension,"cfg")) {
-			$restoreOutput = exec('save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]);
-				}
-				if ($restoreOutput.length > 0) {
-					$restoreStatus = Number(trim($restoreOutput[0]));
+			$restoreOutput = exec('/usr/bin/save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]);
 		}
-                if($restoreStatus==0)
-                {
-                        exec('/usr/bin/logger -t GUI -p local5.notice Configuration was successfully updated.');
-                }
+		if ($restoreOutput.length > 0) {
+			$restoreStatus = Number(trim($restoreOutput[0]));
+		}
+		if($restoreStatus==0)
+		{
+			exec('/usr/bin/logger -t GUI -p local5.notice Configuration was successfully updated.');
+		}
 		if (($restoreStatus==2) || ($restoreStatus==3) || ($restoreStatus==4)){
 			echo( "Password Check Failed");
 			$failedAttempts=getStr("Device.Users.User.1.NumOfRestoreFailedAttempt");
@@ -79,7 +77,6 @@
 		if ($restoreStatus!=0){
 			echo( "Error when trying to restore configuration!");
 		}
-	
 	}
 ?>
 
