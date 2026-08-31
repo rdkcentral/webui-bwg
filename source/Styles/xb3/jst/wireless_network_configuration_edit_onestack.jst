@@ -238,7 +238,8 @@ $WPA3_enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WPA3_Perso
 $WPA3_compatibility_enable = getStr("Device.WiFi.WPA3_Personal_Compatibility");
 $dfsAtBootup= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFSatBootUp.Enable");
 $dfsEnable= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFS.Enable");
-if(($id == 17) && ($OperatingChannelBandwidth == "6GHz"))
+$partnerId= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId");
+if(($id == 17) && ($OperatingChannelBandwidth == "6GHz") && (strpos($partnerId, "sky-") !== false))
 $possible_channels = "5,37,69,101,133,165,197";
 ?>
 
@@ -776,14 +777,24 @@ $(document).ready(function() {
 		return str.indexOf("cablewifi") == -1 && str.indexOf("twcwifi") == -1 && str.indexOf("optimumwifi") == -1 && str.indexOf("xfinity") == -1 && str.indexOf("xfinitywifi") == -1 ;
 		//return value.toLowerCase().indexOf("optimumwifi")==-1 && value.toLowerCase().indexOf("twcwifi")==-1 && value.toLowerCase().indexOf("cablewifi")==-1;
 	}, 'SSID containing "optimumwifi", "TWCWiFi", "cablewifi", "xfinity" and "xfinitywifi" are reserved !');
-	<?%
-		echo("$.validator.addMethod('not_defaulSSID', function(value, element, param) {\
-		return value.toLowerCase() != '"+$defaultSSID+"'.toLowerCase();\
-    	}, 'Choose a different Network Name (SSID) than the one provided on your gateway.');\
-		$.validator.addMethod('not_defaulPassword', function(value, element, param) {\
-		return value != '"+$defaultKeyPassphrase+"';\
-    	}, 'Choose a different Network Password than the one provided on your gateway.');");
-	?>
+    if ("true" === "<?% echo($WifiPersonalizationEnable); ?>") {
+        $.validator.addMethod("not_defaulSSID", function(value, element, param) {
+	        return value.toLowerCase() != "<?% echo( $defaultSSID); ?>".toLowerCase();
+	    }, 'Choose a different Network Name (SSID) than the one provided on your gateway.');
+
+        $.validator.addMethod("not_defaulPassword", function(value, element, param) {
+			return value != "<?% echo( $defaultKeyPassphrase); ?>";
+		}, 'Choose a different Network Password than the one provided on your gateway.');
+    }
+    else {
+        $.validator.addMethod("not_defaulSSID", function(value, element, param) {
+			return true;
+        }, '');
+
+        $.validator.addMethod("not_defaulPassword", function(value, element, param) {
+			return true;
+        }, '');
+	}
     // XFSETUP HOME xfinitywifi cablewifi
     // a term starting with the following combination of text in uppercase or lowercase should not be allowed
 	/* $.validator.addMethod("not_XFSETUP", function(value, element, param) {
@@ -1241,8 +1252,6 @@ function setResetInfo(info) {
 					//dynamic generate possible channels
 					$channels = explode(",", $possible_channels);
 					for(var $keytmp in $channels) { $val=$channels[$keytmp];/*p2j-foreach*/
-						if( $val>=52 && $val<=140 ) //bypassing DFS channels (52-140). This is for 5GHZ
-							continue;
 						echo( '<option value="'+$val+($val==$channel_number ? '" selected="selected">' : '" >')+$val+'</option>');
 					}
 				?>
