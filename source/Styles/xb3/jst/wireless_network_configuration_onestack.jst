@@ -988,11 +988,15 @@ $(document).ready(function() {
 		$('#wireless_mode1, #wireless_mode').prop("disabled", true);
 	}
 });
+<?%
+	$mac_ssid_v_js = getValidatedMacSsidValueJs();
+?>
 setTimeout(function(){
-	var mac_ssid_GET	= "<?% echo( $_GET['mac_ssid']);?>";
-	var ssids = "<?% echo( $ssids);?>";
-	if((ssids.includes(mac_ssid_GET)) && mac_ssid_GET) {
-		$("#mac_ssid").val(mac_ssid_GET);
+	var mac_ssid_GET = <?% echo($mac_ssid_v_js);?>;
+	if (mac_ssid_GET !== "") {
+		if ($("#mac_ssid option[value='"+mac_ssid_GET+"']").length > 0) {
+			$("#mac_ssid").val(mac_ssid_GET);
+		}
 	}
 	update_Wi_Fi_control_list();
 }, 100);

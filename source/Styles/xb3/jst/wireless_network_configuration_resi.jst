@@ -309,17 +309,16 @@ else {
 }
 
 /*- In bridge mode don't show 'Mac filter settings ' -*/
-	if(strstr($_SESSION["lanMode"], "bridge-static")){
-		array_remove($ssids, 1);
-		array_remove($ssids, 0);
+if(strstr($_SESSION["lanMode"], "bridge-static")){
+	array_remove($ssids, 1);
+	array_remove($ssids, 0);
+}
+else if(strstr($_SESSION["lanMode"], "full-bridge-static")){
+	array_remove($ssids, 3);
+	array_remove($ssids, 2);
+	array_remove($ssids, 1);
+	array_remove($ssids, 0);
 	}
-	else if(strstr($_SESSION["lanMode"], "full-bridge-static")){
-		array_remove($ssids, 3);
-		array_remove($ssids, 2);
-		array_remove($ssids, 1); 
-	        array_remove($ssids, 0);
-	}
-
 $dfsEnable= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFS.Enable");
 $dfsAtBootup= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFSatBootUp.Enable");
 
@@ -775,12 +774,14 @@ $(document).ready(function() {
                 }
 });
 <?%
-$mac_ssid_v = $_GET['mac_ssid'];
+	$mac_ssid_v_js = getValidatedMacSsidValueJs();
 ?>
 setTimeout(function() {
-	var mac_ssid_GET	= "<?% echo( $mac_ssid_v);?>";
-	if(mac_ssid_GET == '3' || mac_ssid_GET == '5') {
-		$("#mac_ssid").val(mac_ssid_GET);
+	var mac_ssid_GET = <?% echo($mac_ssid_v_js);?>;
+	if (mac_ssid_GET !== "") {
+		if ($("#mac_ssid option[value='"+mac_ssid_GET+"']").length > 0) {
+			$("#mac_ssid").val(mac_ssid_GET);
+		}
 	}
 	update_Wi_Fi_control_list();
 }, 100);
@@ -794,8 +795,18 @@ function set_config(jsConfig)
 		url: "actionHandler/ajaxSet_wireless_network_configuration.jst",
 		data: { configInfo: jsConfig,csrfp_token: token },
 		success: function(msg) {
-			jHide();
-			window.location.href = "wireless_network_configuration.jst";
+			if(isIE()){
+				var jsConfigTxt = JSON.stringify(jsConfig);
+				var jsonConfig = jQuery.parseJSON(jsConfigTxt);
+			}else{
+				var jsonConfig = JSON.parse(jsConfig);
+			}
+			var location_url = "wireless_network_configuration.jst";
+			if(jsonConfig.target == "save_filter") location_url += "?mac_ssid="+jsonConfig.ssid_number;
+			setTimeout(function(){
+				jHide();
+				location.href=location_url;
+			}, 5000);
 		},
 		error: function(){            
 			jHide();
@@ -1870,3 +1881,4 @@ function saveBandSteeringSettings()
 </div><!-- end #content -->
 
 <?% include('includes/footer.jst'); /*sleep(3);*/?>
+
