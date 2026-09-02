@@ -77,7 +77,9 @@ $wifi_param = {
 	"DefaultKeyPassphrase"	: "Device.WiFi.AccessPoint."+$id+".Security.X_COMCAST-COM_DefaultKeyPassphrase",
 	"AccessPoint_4_Enable"	: "Device.WiFi.AccessPoint.4.Enable",
 	"1_SupportedStandards"	: "Device.WiFi.Radio.1.SupportedStandards",
-	"2_SupportedStandards"	: "Device.WiFi.Radio.2.SupportedStandards" 
+	"2_SupportedStandards"	: "Device.WiFi.Radio.2.SupportedStandards",
+	"DFS_Support1"		: "Device.WiFi.Radio.2.X_COMCAST_COM_DFSSupport", //1-supported 0-not supported
+	"DFS_Enable1"		: "Device.WiFi.Radio.2.X_COMCAST_COM_DFSEnable"
 	}/*p2j-array*/;
 if(getStr("Device.WiFi.AccessPoint."+$id+".Security.X_CISCO_COM_WEPKey64BitNumberOfEntries")=="0")
 delete $wifi_param["network_pass_64"];
@@ -119,6 +121,8 @@ $defaultKeyPassphrase	= ($id == 3)?"":$wifi_value['DefaultKeyPassphrase'];
 $Mesh_Enable 	= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.Enable");
 $Mesh_State 	= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_xOpsDeviceMgmt.Mesh.State");
 $Mesh_Mode = ($Mesh_Enable == 'true' && $Mesh_State == 'Full')?'true':'false';
+$DFS_Support1		= $wifi_value['DFS_Support1'];
+$DFS_Enable1		= $wifi_value['DFS_Enable1'];
 $WifiPersonalizationEnable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_WiFiNeedsPersonalization");
 if($id != 1 && $id != 2) $Mesh_Mode = 'false';
 
@@ -219,6 +223,8 @@ else{
 $password_mso_user = !(($id == 1 || $id == 2) && ($_SESSION["loginuser"] == "mso"));
 $WPA3_enable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WPA3_Personal_Transition.Enable");
 $WPA3_compatibility_enable = getStr("Device.WiFi.WPA3_Personal_Compatibility");
+$dfsAtBootup= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFSatBootUp.Enable");
+$dfsEnable= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFS.Enable");
 ?>
 
 <script type="text/javascript">
@@ -364,8 +370,20 @@ function removeControlChars(value) {
 $(document).ready(function() {
     comcast.page.init("Gateway > Connection > Wireless > Edit <?% echo( $radio_band); ?> GHz", "nav-wifi-config");
 	$('#pop_dialog').hide();
-        $Mesh_Mode = '<?% echo( $Mesh_Mode); ?>';
+	$Mesh_Mode = '<?% echo( $Mesh_Mode); ?>';
+	var $dfsBoot = '<?% echo($dfsAtBootup); ?>';
 	var MeshEnable= '<?% echo( $Mesh_Enable); ?>';
+
+	/**
+	 * Description:
+	 * Disable/unselect entries in $disableChannelList and, if the current value is disabled, set it to $channel.
+	 */
+	function checkAndSetChannelNumber($disableChannelList, $channel){
+		$.each($disableChannelList, function( index, value ) {
+			$("#channel_number").find("[value='"+value+"']").prop("disabled", true).prop("selected", false);
+			if($("#channel_number").val() == value) $("#channel_number").val($channel);
+		});
+	}
 	$("#wireless_network_switch").radioswitch({
 		id: "wireless-network-switch",
 		radio_name: "wireless_network",
@@ -606,27 +624,58 @@ $(document).ready(function() {
 	$("[name='channel_bandwidth1']").change(function() {
 		//enable all channel first
 		$("#channel_number option").prop("disabled", false);
+		var $disableChannelList;
+		if (("true"=="<?% echo( $DFS_Support1); ?>") && ("true"=="<?% echo( $DFS_Enable1); ?>") && ("true"=="<?% echo( $dfsEnable); ?>")) {
+			$("#channel_number").find("[value='52'],[value='56'],[value='60'],[value='64'],[value='100'],[value='104'],[value='108'],[value='112'],[value='116'],[value='120'],[value='124'],[value='128'],[value='132'],[value='136'],[value='140'],[value='144']").prop("disabled", false);
+		}else{
+			$("#channel_number").find("[value='52'],[value='56'],[value='60'],[value='64'],[value='100'],[value='104'],[value='108'],[value='112'],[value='116'],[value='120'],[value='124'],[value='128'],[value='132'],[value='136'],[value='140'],[value='144']").prop("disabled", true).prop("selected", false);
+		}
 		//disable some channel as per extension channel when NOT 20MHz in 5G (2.4G able to set channel and extension channel together)
 		if (!$("#channel_bandwidth201").prop("checked")) {
-			//40MHz
-			if ($("#channel_bandwidth1").prop("checked")) {
-				if ("BelowControlChannel" == "<?% echo( $ext_channel); ?>"){
-					$("#channel_number").find("[value='36'],[value='44'],[value='52'],[value='60'],[value='100'],[value='108'],[value='116'],[value='132'],[value='140'],[value='144'],[value='149'],[value='157'],[value='165']").prop("disabled", true).prop("selected", false);
-				}	
-				else{	//AboveControlChannel or Auto  //zqiu: exclude 116,140
-					$("#channel_number1").find("[value='40'],[value='48'],[value='56'],[value='64'],[value='104'],[value='112'],[value='116'],[value='136'],[value='140'],[value='144'],[value='153'],[value='161'],[value='165']").prop("disabled", true).prop("selected", false);
-				}
-			} 
-			//80MHz
-			else if ($("#channel_bandwidth2").prop("checked")) {
-				$("#channel_number").find("[value='116'],[value='120'],[value='124'],[value='128'],[value='132'],[value='136'],[value='140'],[value='144'],[value='165']").prop("disabled", true).prop("selected", false);			
-			}
-                        //160MHz
-                        else if ($("#channel_bandwidth3").prop("checked")) {
-                                $("#channel_number").find("[value='132'],[value='136'],[value='140'],[value='144'],[value='149'],[value='153'],[value='157'],[value='161'],[value='165']").prop("disabled", true).prop("selected", false);
-                        }
 			// NOT 20MHz, disable channel 165
-			$("#channel_number").find("[value='165']").prop("disabled", true).prop("selected", false);
+			//40MHz
+			if ($("#channel_bandwidth1").is(":checked")) {
+				if ("BelowControlChannel" == "<?% echo( $ext_channel); ?>"){
+					$disableChannelList = [36, 44, 52, 60, 100, 108, 116, 132, 140, 144, 149, 157, 165 ];
+					checkAndSetChannelNumber($disableChannelList,'40');
+				}
+				else{    //AboveControlChannel or Auto
+					$disableChannelList = [40, 48, 56, 64, 104, 112, 116, 136, 140, 144, 153, 161, 165 ];
+					checkAndSetChannelNumber($disableChannelList,'36');
+				}
+			}
+			//80MHz
+			else if ($("#channel_bandwidth2").is(":checked")) {
+				$disableChannelList = [ 116, 120, 124, 128, 140, 144, 165 ];
+				checkAndSetChannelNumber($disableChannelList,'36');
+			}
+			//160MHz
+			else if ($("#channel_bandwidth3").is(":checked")) {
+				$disableChannelList = [ 132, 136, 140, 144, 149, 153, 157, 161, 165 ];
+				checkAndSetChannelNumber($disableChannelList,'36');
+			}
+		}
+		else {
+			//if Channel Bandwidth is 20MHz DFS Channels (Channels 50 - 144) should be greyed out
+			//$("#channel_number").val('36');
+		}
+		$("#channel_number").trigger("change", {silent:true});
+	}).trigger("change");
+	$("#channel_number").change(function() {
+		var isDfsPlatformSupported = ("<?% echo( $DFS_Support1); ?>" == "true");
+		if ("165" == $(this).val()){
+			$('[name="channel_bandwidth1"]:not([value="20MHz"])').prop("disabled", true);
+		}
+		else{
+			/*
+			 * Re-enable bandwidth options for non-165 channels,
+			 * but preserve DFS-at-boot restrictions.
+			 */
+			$('[name="channel_bandwidth1"]').prop("disabled", false);
+
+			if (isDfsPlatformSupported && $dfsBoot == "false") {
+				$("#channel_bandwidth3").prop("disabled", true);
+			}
 		}
 	}).trigger("change");
     $("#wireless_network_switch").change(function() {
@@ -781,6 +830,10 @@ wpa2psk ==> 8 to 63 Ascii characters
                         }, 1500);
 		}
     });
+	$dfsBoot= '<?% echo($dfsAtBootup); ?>';
+	if(("<?% echo( $DFS_Support1); ?>" == "true") && $dfsBoot=="false"){
+		$("#channel_bandwidth3").prop("disabled", true);
+	}
     if(MeshEnable == 'true'){
     	$('#channel_number,input[name=channel_bandwidth]').prop("disabled", true);
     }
@@ -801,6 +854,8 @@ function init_form()
 	var channel_bandwidth	= "<?% echo( $channel_bandwidth); ?>";
 	var ext_channel			= "<?% echo( $ext_channel); ?>";
 	var security			= "<?% echo( $security); ?>";
+	var DFS_Support1		= "<?% echo( $DFS_Support1); ?>";
+	var DFS_Enable1			= "<?% echo( $DFS_Enable1); ?>";
 
 	//show or hide divs as per user
 	if ("mso"==thisUser){
@@ -817,6 +872,10 @@ function init_form()
 		$("#div_enableWMM").hide();
 	}
 	restyle_div();
+
+	if ("true"!="<?% echo( $DFS_Support1); ?>" || "true"!="<?% echo( $DFS_Enable1); ?>") {
+		$("#channel_number").find("[value='52'],[value='56'],[value='60'],[value='64'],[value='100'],[value='104'],[value='108'],[value='112'],[value='116'],[value='120'],[value='124'],[value='128'],[value='132'],[value='136'],[value='140'],[value='144']").prop("disabled", true);
+	}
 	//disable some channel as per extension channel when NOT 20MHz, only when can't set extension channel
 	if ("20MHz" != channel_bandwidth){
 		//40MHz, exclude 80MHz for 5G
@@ -834,16 +893,28 @@ function init_form()
 					$("#channel_number [value='36'],[value='44'],[value='52'],[value='60'],[value='100'],[value='108'],[value='116'],[value='132'],[value='140'],[value='149'],[value='157'],[value='165']").prop("disabled", true);
 				}	
 				else{	//AboveControlChannel or Auto
-					$("#channel_number [value='40'],[value='48'],[value='56'],[value='64'],[value='104'],[value='112'],[value='136'],[value='153'],[value='161']").prop("disabled", true);
+					$("#channel_number").find("[value='116'],[value='140'],[value='144'],[value='165']").prop("disabled", true).prop("selected", false);
 				}	
 			}
+		}
+		else if ("160MHz" == channel_bandwidth){
+			$("#channel_number").find("[value='132'],[value='136'],[value='140'],[value='144'],[value='149'],[value='153'],[value='157'],[value='161'],[value='165']").prop("disabled", true).prop("selected", false);
 		}
 		// NOT 20MHz, disable channel 165
 		$("#channel_number").find("[value='165']").prop("disabled", true).prop("selected", false);
 	}
 
 	// Warning for DFS channel (52-140)
-	$("#channel_number").change(function(){
+	$("#channel_number").change(function(event, data){
+		if (data && data.silent) {
+			return;
+		}
+
+		// DFS warning applies only to 5GHz (channels 52-140)
+		if ("5" != radio_band) {
+			return;
+		}
+
 		var channel = $("#channel_number option:selected").val();
 
 		if(channel >= 52 && channel <= 140 ) {
