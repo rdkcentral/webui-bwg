@@ -85,6 +85,31 @@ function file_download($file_path, $file_name)
 	die();
 }
 $timeFrame=$_POST["time_frame"];
+$timeFrameKey = "";
+switch($timeFrame){
+	case "today":
+	case "Today":
+		$timeFrameKey = "today";
+	break;
+	case "yesterday":
+	case "Yesterday":
+		$timeFrameKey = "yesterday";
+	break;
+	case "week":
+	case "Last week":
+		$timeFrameKey = "week";
+	break;
+	case "month":
+	case "Last month":
+		$timeFrameKey = "month";
+	break;
+	case "last90":
+	case "Last 90 days":
+		$timeFrameKey = "last90";
+	break;
+	default:
+		die('Not allowed!');
+}
 $locale = getenv("LANG");
 $locale = $locale ? $locale : "false";
 if($locale != "false"){
@@ -109,7 +134,7 @@ if($locale=="it"){
 //MROLLINS FIXME set_time_limit(0) not implemented
 //set_time_limit(0);
 $report=$_POST['report_type']+"_"+$timeFrame;
-$report1=$_POST['report_type']+"_"+$_POST["time_frame"];
+$report1=$_POST['report_type']+"_"+$timeFrameKey;
 $report_type_array = ["all", "site", "service", "device"]/*p2j-array*/;
 if($locale=="it"){
 	$time_frame_array = ["Oggi", "Ieri", "Ultima settimana", "Ultimo mese", "Ultimi 90 giorni"]/*p2j-array*/;
@@ -117,7 +142,6 @@ if($locale=="it"){
 	$time_frame_array = ["Today", "Yesterday", "Last week", "Last month", "Last 90 days"]/*p2j-array*/;
 }
 if (!in_array($_POST["report_type"], $report_type_array))	die('Not allowed!');
-if (!in_array($timeFrame, $time_frame_array))	die('Not allowed!');
 $file_path="/tmp/parental_reports_"+$report1+".txt";
 $file_name="parental_reports_"+$report+".txt";
 file_download($file_path, $file_name);

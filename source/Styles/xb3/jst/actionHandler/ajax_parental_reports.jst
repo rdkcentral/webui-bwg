@@ -22,7 +22,7 @@
 <?% include('includes/actionHandlerUtility.jst') ?>
 <?%
 session_start();
-if (!isset($_SESSION["loginuser"])) {
+if ($_SESSION["loginuser"] == "" || $_SESSION["loginuser"] == false || $_SESSION["loginuser"] == undefined) {
 	echo( '<script type="text/javascript">alert("Please Login First!"); location.href="../index.jst";</script>');
 	exit(0);
 }
@@ -92,6 +92,7 @@ $file= fopen("/tmp/log_parental.txt", "r");
 $pos = 50;		//global file pointer where to read the value in a line
 $Log = []/*p2j-array*/;
 $value = getStr("Device.X_CISCO_COM_Security.InternetAccess.LogEntryNumberOfEntries");
+$k = 0;
 for (var $i=0; $i < $value; $i++) {
 	$Count 	    = substr(fgets($file),$pos);
 	$SourceIP 	= substr(fgets($file),$pos);	//don't need, but have to read
@@ -110,11 +111,14 @@ for (var $i=0; $i < $value; $i++) {
 	$timeArr = str2time(UTC_to_local_date_logs(trim($time)));
 
 	if ($type == $Type) {
-		$Log[$i++] = {"time":$timeArr['formatted_time'], "Des":$Des, "Count":$Count, "Target":$TargetIP,"Source":$SourceIP,"Type":$Type}/*p2j-array*/;
+		$Log[$k] = {"time":$timeArr['formatted_time'], "Des":$Des, "Count":$Count, "Target":$TargetIP,"Source":$SourceIP,"Type":$Type}/*p2j-array*/;
+		$k++;
 	}
 	else if ($type == "all") {
-		if (in_array($Type, ["Site Blocked", "Service Blocked", "Device Blocked"]/*p2j-array*/)) {
-			 $Log[$i++] = {"time":$timeArr['formatted_time'], "Des":$Des, "Count":$Count, "Target":$TargetIP,"Source":$SourceIP,"Type":$Type}/*p2j-array*/;
+		$allowedTypes = ["Site Blocked", "Service Blocked", "Device Blocked"]/*p2j-array*/;
+		if (in_array($Type, $allowedTypes)) {
+				 $Log[$k] = {"time":$timeArr['formatted_time'], "Des":$Des, "Count":$Count, "Target":$TargetIP,"Source":$SourceIP,"Type":$Type}/*p2j-array*/;
+				 $k++;
 		}
 	}
 	

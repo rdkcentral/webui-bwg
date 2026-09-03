@@ -293,7 +293,7 @@ function adjust_acs_tb(tb_summary, th_array){
 
 function ajaxDo(mode,timef,timefLabel){
 	var token = "<?% echo(  $_SESSION['Csrf_token'] );?>";
-	var timef2 = (timef == "last90") ? "last" : timef;
+	var timef2 = (timef == "last90") ? "last90" : timef;
 	jProgress('This may take several seconds.',120);
 	ajaxrequest=$.ajax({
 		type:"GET",
@@ -341,7 +341,7 @@ function ajaxDo(mode,timef,timefLabel){
 	<div class="module noprint">
 		<h2>Report Filters</h2>
 
-<form action="parental_reports_sample.jst" method="post">
+<form action="parental_reports_download.jst" method="post">
 
 			<label for="report_type" class="readonlyLabel">Report Type:</label>
 			<select id="report_type" name="report_type">
