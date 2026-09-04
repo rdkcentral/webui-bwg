@@ -28,9 +28,10 @@ if ($_SESSION["loginuser"] == "" || $_SESSION["loginuser"] == false || $_SESSION
 }
 $mode=$_GET['mode'];
 $timef=$_GET['timef'];
+$timef = str_replace("+"," ",str_replace("+"," ",$timef));
+$timef=rawurldecode($timef);
 var $maxtime;
 var $mintime;
-
 $timef_key = "";
 switch($timef){			//	[$mintime, $maxtime)
 	case "today":
@@ -66,10 +67,8 @@ switch($timef){			//	[$mintime, $maxtime)
 		$timef_key = "last90";
 	break;
 	default:
-		die('Not allowed!');
+		throw Error('Not allowed!');
 }
-$mintime/=1000;
-$maxtime/=1000;
 switch($mode){
 	case "site":
 		$type="Site Blocked";
@@ -86,11 +85,20 @@ switch($mode){
 	default:
 		die('Not allowed!');
 }
-
-exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry. | grep 'type:' > /tmp/log_parental.txt");
+$LogEntrys = exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry.");
+$logEntriesFile = fopen("/tmp/log_parental.txt", "w");
+for ($logEntryKey in $LogEntrys) {
+	$logEntry = $LogEntrys[$logEntryKey]; /*p2j-foreach*/
+	if (strpos($logEntry, "type:") !== false) {
+		fwrite($logEntriesFile, $logEntry+"\n");
+	}
+}
+fclose($logEntriesFile);
 $file= fopen("/tmp/log_parental.txt", "r");
 $pos = 50;		//global file pointer where to read the value in a line
-$Log = []/*p2j-array*/;
+$mintime/=1000;
+$maxtime/=1000;
+$Log = [];
 $value = getStr("Device.X_CISCO_COM_Security.InternetAccess.LogEntryNumberOfEntries");
 $k = 0;
 for (var $i=0; $i < $value; $i++) {
