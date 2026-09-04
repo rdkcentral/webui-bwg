@@ -112,11 +112,10 @@ switch($timeFrame){
 }
 //MROLLINS FIXME set_time_limit(0) not implemented
 //set_time_limit(0);
-$report=$_POST['report_type']+"_"+$timeFrame;
-$report1=$_POST['report_type']+"_"+$timeFrameKey;
+$report=$_POST['report_type']+"_"+$timeFrameKey;
 $report_type_array = ["all", "site", "service", "device"]/*p2j-array*/;
 if (!in_array($_POST["report_type"], $report_type_array))	die('Not allowed!');
-$file_path="/tmp/parental_reports_"+$report1+".txt";
+$file_path="/tmp/parental_reports_"+$report+".txt";
 $file_name="parental_reports_"+$report+".txt";
 file_download($file_path, $file_name);
 //output_file("parental_reports_sample.txt","parental_reports_sample.txt");

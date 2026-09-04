@@ -85,10 +85,10 @@ switch($mode){
 	default:
 		die('Not allowed!');
 }
-$LogEntrys = exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry.");
+$LogEntries = exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry.");
 $logEntriesFile = fopen("/tmp/log_parental.txt", "w");
-for ($logEntryKey in $LogEntrys) {
-	$logEntry = $LogEntrys[$logEntryKey]; /*p2j-foreach*/
+for ($logEntryKey in $LogEntries) {
+	$logEntry = $LogEntries[$logEntryKey]; /*p2j-foreach*/
 	if (strpos($logEntry, "type:") !== false) {
 		// leading spaces are preserved: the reader below indexes each line at $pos
 		fwrite($logEntriesFile, $logEntry.replace(/[\r\n]/g, '')+"\n");
