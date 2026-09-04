@@ -28,38 +28,35 @@ if (!isset($_SESSION["loginuser"]) || empty($_SESSION["loginuser"])) {
 }
 $mode=$_GET['mode'];
 $timef=$_GET['timef'];
-$timef = str_replace("+", " ", $timef);
-$timef = rawurldecode($timef);
+$mode_array = ["all", "site", "service", "device"]/*p2j-array*/;
+$timef_array = ["today", "yesterday", "week", "month", "last90"]/*p2j-array*/;
+if (!in_array($mode, $mode_array)) die('Not allowed!');
+if (!in_array($timef, $timef_array)) die('Not allowed!');
 var $maxtime;
 var $mintime;
 $timef_key = "";
 switch($timef){			//	[$mintime, $maxtime)
 	case "today":
-	case "Today":
 		$maxtime=strtotime("now");
 		$mintime=strtotime("today");
 		$timef_key = "today";
 	break;
 	case "yesterday":
-	case "Yesterday":
 		$maxtime=strtotime("today");
 		$mintime=strtotime("yesterday");
 		$timef_key = "yesterday";
 	break;
 	case "week":
-	case "Last week":
 		$maxtime=strtotime("now");
 		$mintime=strtotime("last Monday");
 		$timef_key = "week";
 	break;
 	case "month":
-	case "Last month":
 		$maxtime=strtotime("now");
 		$mintime=strtotime("last month");
 		$timef_key = "month";
 	break;
 	case "last90":
-	case "Last 90 days":
 		//zqiu: last 90 days include today
 		//$maxtime=strtotime("today");
 		$maxtime=strtotime("now");
