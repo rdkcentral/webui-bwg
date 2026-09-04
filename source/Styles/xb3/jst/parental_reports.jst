@@ -293,7 +293,7 @@ function adjust_acs_tb(tb_summary, th_array){
 
 function ajaxDo(mode,timef,timefLabel){
 	var token = "<?% echo(  $_SESSION['Csrf_token'] );?>";
-	var timef2 = (timef == "last90") ? "last90" : timef;
+	var timef2 = (timef == "last90") ? "last" : timef;
 	jProgress('This may take several seconds.',120);
 	ajaxrequest=$.ajax({
 		type:"GET",
