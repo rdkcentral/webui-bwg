@@ -83,7 +83,7 @@ switch($mode){
 		$type="all";
 		break;
 	default:
-		die('Not allowed!');
+		throw Error('Not allowed!');
 }
 $LogEntrys = exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry.");
 $logEntriesFile = fopen("/tmp/log_parental.txt", "w");
