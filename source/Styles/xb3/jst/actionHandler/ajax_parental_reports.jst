@@ -28,8 +28,8 @@ if (!isset($_SESSION["loginuser"]) || empty($_SESSION["loginuser"])) {
 }
 $mode=$_GET['mode'];
 $timef=$_GET['timef'];
-$timef = str_replace("+"," ",str_replace("+"," ",$timef));
-$timef=rawurldecode($timef);
+$timef = str_replace("+", " ", $timef);
+$timef = rawurldecode($timef);
 var $maxtime;
 var $mintime;
 $timef_key = "";
