@@ -67,7 +67,7 @@ switch($timef){			//	[$mintime, $maxtime)
 		$timef_key = "last90";
 	break;
 	default:
-		throw Error('Not allowed!');
+		die('Not allowed!');
 }
 switch($mode){
 	case "site":
@@ -83,14 +83,15 @@ switch($mode){
 		$type="all";
 		break;
 	default:
-		throw Error('Not allowed!');
+		die('Not allowed!');
 }
 $LogEntrys = exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry.");
 $logEntriesFile = fopen("/tmp/log_parental.txt", "w");
 for ($logEntryKey in $LogEntrys) {
 	$logEntry = $LogEntrys[$logEntryKey]; /*p2j-foreach*/
 	if (strpos($logEntry, "type:") !== false) {
-		fwrite($logEntriesFile, $logEntry+"\n");
+		// leading spaces are preserved: the reader below indexes each line at $pos
+		fwrite($logEntriesFile, $logEntry.replace(/[\r\n]/g, '')+"\n");
 	}
 }
 fclose($logEntriesFile);
