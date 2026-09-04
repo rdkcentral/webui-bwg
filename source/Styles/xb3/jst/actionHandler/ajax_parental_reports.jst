@@ -22,43 +22,41 @@
 <?% include('includes/actionHandlerUtility.jst') ?>
 <?%
 session_start();
-if (!isset($_SESSION["loginuser"])) {
+if (!isset($_SESSION["loginuser"]) || empty($_SESSION["loginuser"])) {
 	echo( '<script type="text/javascript">alert("Please Login First!"); location.href="../index.jst";</script>');
 	exit(0);
 }
 $mode=$_GET['mode'];
 $timef=$_GET['timef'];
+$mode_array = ["all", "site", "service", "device"]/*p2j-array*/;
+$timef_array = ["today", "yesterday", "week", "month", "last90"]/*p2j-array*/;
+if (!in_array($mode, $mode_array)) die('Not allowed!');
+if (!in_array($timef, $timef_array)) die('Not allowed!');
 var $maxtime;
 var $mintime;
-
 $timef_key = "";
 switch($timef){			//	[$mintime, $maxtime)
 	case "today":
-	case "Today":
 		$maxtime=strtotime("now");
 		$mintime=strtotime("today");
 		$timef_key = "today";
 	break;
 	case "yesterday":
-	case "Yesterday":
 		$maxtime=strtotime("today");
 		$mintime=strtotime("yesterday");
 		$timef_key = "yesterday";
 	break;
 	case "week":
-	case "Last week":
 		$maxtime=strtotime("now");
 		$mintime=strtotime("last Monday");
 		$timef_key = "week";
 	break;
 	case "month":
-	case "Last month":
 		$maxtime=strtotime("now");
 		$mintime=strtotime("last month");
 		$timef_key = "month";
 	break;
 	case "last90":
-	case "Last 90 days":
 		//zqiu: last 90 days include today
 		//$maxtime=strtotime("today");
 		$maxtime=strtotime("now");
@@ -68,8 +66,6 @@ switch($timef){			//	[$mintime, $maxtime)
 	default:
 		die('Not allowed!');
 }
-$mintime/=1000;
-$maxtime/=1000;
 switch($mode){
 	case "site":
 		$type="Site Blocked";
@@ -86,12 +82,23 @@ switch($mode){
 	default:
 		die('Not allowed!');
 }
-
-exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry. | grep 'type:' > /tmp/log_parental.txt");
+$LogEntries = exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry.");
+$logEntriesFile = fopen("/tmp/log_parental.txt", "w");
+for ($logEntryKey in $LogEntries) {
+	$logEntry = $LogEntries[$logEntryKey]; /*p2j-foreach*/
+	if (strpos($logEntry, "type:") !== false) {
+		// leading spaces are preserved: the reader below indexes each line at $pos
+		fwrite($logEntriesFile, $logEntry.replace(/[\r\n]/g, '')+"\n");
+	}
+}
+fclose($logEntriesFile);
 $file= fopen("/tmp/log_parental.txt", "r");
 $pos = 50;		//global file pointer where to read the value in a line
-$Log = []/*p2j-array*/;
+$mintime/=1000;
+$maxtime/=1000;
+$Log = [];
 $value = getStr("Device.X_CISCO_COM_Security.InternetAccess.LogEntryNumberOfEntries");
+$k = 0;
 for (var $i=0; $i < $value; $i++) {
 	$Count 	    = substr(fgets($file),$pos);
 	$SourceIP 	= substr(fgets($file),$pos);	//don't need, but have to read
@@ -110,11 +117,14 @@ for (var $i=0; $i < $value; $i++) {
 	$timeArr = str2time(UTC_to_local_date_logs(trim($time)));
 
 	if ($type == $Type) {
-		$Log[$i++] = {"time":$timeArr['formatted_time'], "Des":$Des, "Count":$Count, "Target":$TargetIP,"Source":$SourceIP,"Type":$Type}/*p2j-array*/;
+		$Log[$k] = {"time":$timeArr['formatted_time'], "Des":$Des, "Count":$Count, "Target":$TargetIP,"Source":$SourceIP,"Type":$Type}/*p2j-array*/;
+		$k++;
 	}
 	else if ($type == "all") {
-		if (in_array($Type, ["Site Blocked", "Service Blocked", "Device Blocked"]/*p2j-array*/)) {
-			 $Log[$i++] = {"time":$timeArr['formatted_time'], "Des":$Des, "Count":$Count, "Target":$TargetIP,"Source":$SourceIP,"Type":$Type}/*p2j-array*/;
+		$allowedTypes = ["Site Blocked", "Service Blocked", "Device Blocked"]/*p2j-array*/;
+		if (in_array($Type, $allowedTypes)) {
+				 $Log[$k] = {"time":$timeArr['formatted_time'], "Des":$Des, "Count":$Count, "Target":$TargetIP,"Source":$SourceIP,"Type":$Type}/*p2j-array*/;
+				 $k++;
 		}
 	}
 	
