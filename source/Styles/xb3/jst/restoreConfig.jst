@@ -56,13 +56,14 @@
 		$fileExtension=$fileExplode[1];
 		$restoreStatus=-1;
 		if (!strcasecmp($fileExtension,"cf2")) {
-			$restoreOutput = exec('/usr/bin/save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]);
+			$restoreOutput = exec('/usr/bin/save_restore_config restore '+$target+' '+$_POST["VerifyPassword"]);
 		}
 		else if (!strcasecmp($fileExtension,"cfg")) {
 			$restoreOutput = exec('/usr/bin/save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]);
 		}
 		if ($restoreOutput.length > 0) {
-			$restoreStatus = Number(trim($restoreOutput[0]));
+			$restoreLines = trim($restoreOutput).split("\n");
+			$restoreStatus = Number(trim($restoreLines[$restoreLines.length-1]));
 		}
 		if($restoreStatus==0)
 		{

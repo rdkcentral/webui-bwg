@@ -34,7 +34,9 @@ if (($_POST['FileName'] != "") && ($_POST['UserInputPassword'] != "")) {
                 $command = "/usr/bin/save_restore_config save"+" "+escapeshellarg($Filename)+" "+escapeshellarg($Password);
                 $output = exec($command);
         }
-        if ($output == "") {
+        $saveLines = trim($output).split("\n");
+        $saveStatus = trim($saveLines[$saveLines.length-1]);
+        if ($saveStatus != "0") {
                 $result = "Failure!";
                 LogStr(" : webui_event:save_restore_config_failed");
         } else {
