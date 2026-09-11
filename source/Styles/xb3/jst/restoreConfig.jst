@@ -63,6 +63,7 @@
 			$restoreOutput = exec('/usr/bin/save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]);
 		}
 		if ($restoreOutput.length > 0) {
+			// ONE_STACK device-mode checks may print log messages before the final numeric status, so use the last output line as the command result
 			$restoreStatus = Number(trim($restoreOutput[$restoreOutput.length - 1]));
 		}
 		if($restoreStatus==0)
