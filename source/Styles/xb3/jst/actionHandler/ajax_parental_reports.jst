@@ -94,8 +94,6 @@ for ($logEntryKey in $LogEntries) {
 fclose($logEntriesFile);
 $file= fopen("/tmp/log_parental.txt", "r");
 $pos = 50;		//global file pointer where to read the value in a line
-$mintime/=1000;
-$maxtime/=1000;
 $Log = [];
 $value = getStr("Device.X_CISCO_COM_Security.InternetAccess.LogEntryNumberOfEntries");
 $k = 0;
