@@ -36,6 +36,7 @@ if (($_POST['FileName'] != "") && ($_POST['UserInputPassword'] != "")) {
         }
 	$saveStatus = -1;
         if ($output.length > 0) {
+				// ONE_STACK device-mode checks may print log messages before the final numeric status, so use the last output line as the command result
                 $saveStatus = Number(trim($output[$output.length -1]));
         }
         if ($saveStatus != 0) {
