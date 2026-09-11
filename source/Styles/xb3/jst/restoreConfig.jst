@@ -54,15 +54,17 @@
 		exec('cp '+$_FILES['file']['tmp_name']+' '+$target);
 		$fileExplode=explode(".",$_FILES['file']['name']);
 		$fileExtension=$fileExplode[1];
+		$restoreOutput=[];
 		$restoreStatus=-1;
 		if (!strcasecmp($fileExtension,"cf2")) {
-			$restoreOutput = exec('/usr/bin/save_restore_config restore_CBR '+$target+' '+$_POST["VerifyPassword"]);
+			$restoreOutput = exec('/usr/bin/save_restore_config restore '+$target+' '+$_POST["VerifyPassword"]);
 		}
 		else if (!strcasecmp($fileExtension,"cfg")) {
 			$restoreOutput = exec('/usr/bin/save_restore_config restore_BWG '+$target+' '+$_POST["VerifyPassword"]);
 		}
 		if ($restoreOutput.length > 0) {
-			$restoreStatus = Number(trim($restoreOutput[0]));
+			// ONE_STACK device-mode checks may print log messages before the final numeric status, so use the last output line as the command result
+			$restoreStatus = Number(trim($restoreOutput[$restoreOutput.length - 1]));
 		}
 		if($restoreStatus==0)
 		{
