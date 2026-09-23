@@ -204,6 +204,16 @@ $(document).ready(function() {
 			changeBridge(true);
 		}
 	});
+	$("input[type='checkbox']").change(function() {
+		var pass_id = $(this).data("password-field");
+		var isChecked = $(this).is(":checked");
+
+		var pass_val = $("#" + pass_id).val();
+		var field_type = isChecked?"text":"password";
+
+		$("#" + pass_id).replaceWith('<input type="' + field_type + '" id="' + pass_id + '" class="pass_key" value="" readonly />');
+		$("#" + pass_id).val(pass_val);
+	});
 
 	$("[name=bridge_method]").change(function(){
 		$bridge_method_val = $('input[name=bridge_method]:checked').val();
@@ -278,9 +288,11 @@ function popUp(URL) {
 	        "wifi_24_enabled" 	: "Device.WiFi.SSID.1.Enable",
 			"wifi_24_ssid" 		: "Device.WiFi.SSID.1.SSID",
 			"wifi_24_passkey" 	: "Device.WiFi.AccessPoint.1.Security.X_COMCAST-COM_KeyPassphrase",
+			"wifi_24_secmode" 	: "Device.WiFi.AccessPoint.1.Security.ModeEnabled",
 			"wifi_50_enabled" 	: "Device.WiFi.SSID.2.Enable",
 			"wifi_50_ssid" 		: "Device.WiFi.SSID.2.SSID",
-			"wifi_50_passkey" 	: "Device.WiFi.AccessPoint.2.Security.X_COMCAST-COM_KeyPassphrase" 
+			"wifi_50_passkey" 	: "Device.WiFi.AccessPoint.2.Security.X_COMCAST-COM_KeyPassphrase",
+			"wifi_50_secmode" 	: "Device.WiFi.AccessPoint.2.Security.ModeEnabled"
 		}/*p2j-array*/;
 	    $wifi_value = KeyExtGet("Device.WiFi.", $wifi_param);
 		
@@ -288,9 +300,11 @@ function popUp(URL) {
 		$wifi_24_enabled = $wifi_value["wifi_24_enabled"];
 		$wifi_24_ssid = htmlspecialchars($wifi_value["wifi_24_ssid"], ENT_NOQUOTES, 'UTF-8');
 		$wifi_24_passkey =  htmlspecialchars($wifi_value["wifi_24_passkey"], ENT_NOQUOTES, 'UTF-8');
+		$wifi_24_secmode = htmlspecialchars($wifi_value["wifi_24_secmode"], ENT_NOQUOTES, 'UTF-8');
 		$wifi_50_enabled = $wifi_value["wifi_50_enabled"];
 		$wifi_50_ssid = htmlspecialchars($wifi_value["wifi_50_ssid"], ENT_NOQUOTES, 'UTF-8');
 		$wifi_50_passkey = htmlspecialchars($wifi_value["wifi_50_passkey"], ENT_NOQUOTES, 'UTF-8');
+		$wifi_50_secmode = htmlspecialchars($wifi_value["wifi_50_secmode"], ENT_NOQUOTES, 'UTF-8');
 		//If at least one private SSID is enabled
 		if ( $bridge_mode == "router" && ("true" == $wifi_24_enabled || "true" == $wifi_50_enabled) ) {
 			echo( '<div class="module forms" id="wifi-config">');
@@ -303,9 +317,11 @@ function popUp(URL) {
 					//Figure out whice one is active
 					if ("true" == $wifi_24_enabled) {
 						$wifi_ssid = $wifi_24_ssid;
+						$wifi_sec_mode = $wifi_24_secmode;
 						$wifi_passkey = $wifi_24_passkey;
 					} else {
 						$wifi_ssid = $wifi_50_ssid;
+						$wifi_sec_mode = $wifi_50_secmode;
 						$wifi_passkey = $wifi_50_passkey;
 					}
 			
@@ -314,11 +330,17 @@ function popUp(URL) {
 						echo( '<span class="readonlyLabel">Wi-Fi SSID:</span>');
 						echo( '<span class="value noTrimSpace">');echo( $wifi_ssid);echo( '</span>');
 					echo( '</div>');
-					if ("admin" == $_SESSION["loginuser"]) {
-						echo( '<div class="form-row even">');
-							echo( '<span class="readonlyLabel">Wi-Fi Passkey:</span>');
-							echo( '<span class="value noTrimSpace">');echo( $wifi_passkey);echo( '</span>');
-						echo( '</div>');
+					if ("cusadmin" == $_SESSION["loginuser"] && "None" != $wifi_sec_mode) {
+						?>
+							<div class="form-row even" >
+								<label for="wifipass" class="readonlyLabel white_space pass_key_label" id="wifipass" >Wi-Fi Passkey:</label>
+								<span id="password_field1"><input type="password" class="pass_key" id="wifi_passkey1" name="wifi_passkey1" readonly value="<?% echo( htmlspecialchars($wifi_passkey)); ?>" /> </span>
+							</div>
+							<div class="form-row even">
+								<label for="wifi_passkey_show" id="show_wifi_passkey" >Show Wi-Fi Passkey:</label>
+								<span class="checkbox"><input type="checkbox" id="password_show1" data-password-field="wifi_passkey1"/></span>
+							</div>
+						<?%
 					}
 				echo( '</div>');
 
@@ -328,11 +350,17 @@ function popUp(URL) {
 						echo( '<span class="readonlyLabel">Wi-Fi SSID (2.4 GHz):</span>');
 						echo( '<span class="value noTrimSpace">');echo( $wifi_24_ssid);echo( '</span>');
 					echo( '</div>');
-					if ("admin" == $_SESSION["loginuser"]) {
-						echo( '<div class="form-row even">');
-							echo( '<span class="readonlyLabel">Wi-Fi Passkey (2.4 GHz):</span>');
-							echo( '<span class="value noTrimSpace">');echo( $wifi_24_passkey);echo( '</span>');
-						echo( '</div>');
+					if ("cusadmin" == $_SESSION["loginuser"] && "None" != $wifi_24_secmode) {
+						?>
+							<div class="form-row even" >
+								<label for="wifipasskey24" class="readonlyLabel white_space pass_key_label" id="wifipasskey24" >Wi-Fi Passkey (2.4 GHz):</label>
+								<span id="password_field24"><input type="password" class="pass_key" id="wifi_passkey24" name="wifi_passkey24" readonly value="<?% echo( htmlspecialchars($wifi_24_passkey)); ?>" /> </span>
+							</div>
+							<div class="form-row even">
+								<label for="wifi_passkey_show" id="show_wifi_passkey24" >Show Wi-Fi Passkey (2.4 GHz):</label>
+								<span class="checkbox"><input type="checkbox" id="password_show24" data-password-field="wifi_passkey24"/></span>
+							</div>
+						<?%
 					}
 				echo( '</div>');
 				echo( '<div class="form-row odd">');
@@ -340,11 +368,17 @@ function popUp(URL) {
 						echo( '<span class="readonlyLabel">Wi-Fi SSID (5 GHz):</span>');
 						echo( '<span class="value noTrimSpace">');echo( $wifi_50_ssid);echo( '</span>');
 					echo( '</div>');
-					if ("admin" == $_SESSION["loginuser"]) { 
-						echo( '<div class="form-row odd">');
-							echo( '<span class="readonlyLabel">Wi-Fi Passkey (5 GHz):</span>');
-							echo( '<span class="value noTrimSpace">');echo( $wifi_50_passkey);echo( '</span>');
-						echo( '</div>');
+					if ("cusadmin" == $_SESSION["loginuser"] && "None" != $wifi_50_secmode) {
+						?>
+							<div class="form-row odd" >
+								<label for="wifipasskey5" class="readonlyLabel white_space pass_key_label" id="wifipasskey5" >Wi-Fi Passkey (5 GHz):</label>
+								<span id="password_field50"><input type="password" class="pass_key" id="wifi_passkey50" name="wifi_passkey50" readonly value="<?% echo( htmlspecialchars($wifi_50_passkey)); ?>" /> </span>
+							</div>
+							<div class="form-row even">
+								<label for="wifi_passkey_show" id="show_wifi_passkey5" >Show Wi-Fi Passkey (5 GHz):</label>
+								<span class="checkbox"><input type="checkbox" id="password_show50" data-password-field="wifi_passkey50"/></span>
+							</div>
+						<?%
 					}
 				echo( '</div>');
 			}
