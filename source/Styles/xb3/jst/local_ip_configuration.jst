@@ -1056,6 +1056,9 @@ function display_time_format_V6(num){
 
 
 function populateIPv6Addr(v6addr){
+    if (v6addr.indexOf('/') !== -1) {
+        v6addr = v6addr.split('/')[0];
+    }
     if (!isValidIp6Str(v6addr)) {
         return [];
     }
