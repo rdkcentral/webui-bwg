@@ -61,9 +61,22 @@ $mintime/=1000;
 $maxtime/=1000;
 $pos = 50;              //global file pointer where to read the value in a line
 
+function writeLogEntries($command, $filename) {
+        $execOutput = [];
+        $execOutput = exec($command);
+        $logFile = fopen($filename, "w");
+        for (var $outputKey in $execOutput) {
+                $line = $execOutput[$outputKey];
+                if (strpos($line, "type:") !== false) {
+                        fwrite($logFile, $line.replace(/[\r\n]/g, '') + "\n");
+                }
+        }
+        fclose($logFile);
+}
+
 if ($mode=="system"){
 
-	exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Diagnostics.Syslog.Entry. | grep 'type:' > /tmp/log_system.txt");
+        writeLogEntries("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Diagnostics.Syslog.Entry.", "/tmp/log_system.txt");
         $file= fopen("/tmp/log_system.txt", "r");
         $Log = []/*p2j-array*/;
         // for($i=0; !feof($file); $i++)
@@ -105,7 +118,7 @@ if ($mode=="system"){
 }
 else if ($mode=="event") {
 
-        exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Diagnostics.Eventlog.Entry. | grep 'type:' > /tmp/log_event.txt");
+        writeLogEntries("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Diagnostics.Eventlog.Entry.", "/tmp/log_event.txt");
         $file= fopen("/tmp/log_event.txt", "r");
         $Log = []/*p2j-array*/;
         // for($i=0; !feof($file); $i++)
@@ -146,7 +159,7 @@ else if ($mode=="event") {
 }
 else if ($mode=="firewall"){
 
-        exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry. | grep 'type:' > /tmp/log_firewall.txt");
+        writeLogEntries("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry.", "/tmp/log_firewall.txt");
         $file= fopen("/tmp/log_firewall.txt", "r");
         $Log = []/*p2j-array*/;
         // for($i=0; !feof($file); $i++)
