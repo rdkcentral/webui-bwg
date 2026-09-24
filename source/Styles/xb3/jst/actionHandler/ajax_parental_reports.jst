@@ -108,7 +108,7 @@ for (var $i=0; $i < $value; $i++) {
 	$TargetIP 	= substr(fgets($file),$pos);
 	$Type 	    = trim(substr(fgets($file),$pos)); //need to trim the blank char in string end, otherwise $type never equal to $Type
 	$time 	    = substr(fgets($file),$pos);
-	$Des 	    = substr(fgets($file),$pos);
+	$Des 	    = trim(substr(fgets($file),$pos));
 
 	if (feof($file)) break;					//PHP read last line will return false, not EOF!
 	
