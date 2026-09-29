@@ -87,7 +87,16 @@ switch($mode){
 		die('Not allowed!');
 }
 
-exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry. | grep 'type:' > /tmp/log_parental.txt");
+$execOutput = [];
+$execOutput = exec("/usr/ccsp/ccsp_bus_client_tool eRT getv Device.X_CISCO_COM_Security.InternetAccess.LogEntry.");
+$logFile = fopen("/tmp/log_parental.txt", "w");
+for (var $outputKey in $execOutput) {
+	$line = $execOutput[$outputKey];
+	if (strpos($line, "type:") !== false) {
+		fwrite($logFile, $line.replace(/[\r\n]/g, '') + "\n");
+	}
+}
+fclose($logFile);
 $file= fopen("/tmp/log_parental.txt", "r");
 $pos = 50;		//global file pointer where to read the value in a line
 $Log = []/*p2j-array*/;
@@ -99,7 +108,7 @@ for (var $i=0; $i < $value; $i++) {
 	$TargetIP 	= substr(fgets($file),$pos);
 	$Type 	    = trim(substr(fgets($file),$pos)); //need to trim the blank char in string end, otherwise $type never equal to $Type
 	$time 	    = substr(fgets($file),$pos);
-	$Des 	    = substr(fgets($file),$pos);
+	$Des 	    = trim(substr(fgets($file),$pos));
 
 	if (feof($file)) break;					//PHP read last line will return false, not EOF!
 	
