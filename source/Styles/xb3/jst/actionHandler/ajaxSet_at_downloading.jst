@@ -26,11 +26,12 @@ if (!(isset($_SESSION["loginuser"]) || isset($_SESSION["password_change"]))) {
         echo( '<script type="text/javascript">alert("Please Login First!"); location.href="../index.jst";</script>');
         exit(0);
 }
-if (($_POST['FileName'] != "") && ($_POST['UserInputPassword'] != "")) {
+$result = "Failure!";
+if (isset($_POST['FileName']) && isset($_POST['UserInputPassword'])) {
 	$Filename = $_POST['FileName'];
 	$Password = $_POST['UserInputPassword'];
 	$output = []; //Fail by default
-	if(preg_match('/^[a-zA-Z0-9]{8,20}$/', $Password)==1 && preg_match('/^.*[a-z].*$/', $Password)==1 && preg_match('/^.*[A-Z].*$/', $Password)==1 && preg_match('/^.*[0-9].*$/', $Password)==1 && (preg_match('/^.*[a-z].*$/', $Filename)==1 || preg_match('/^.*[A-Z].*$/', $Filename)==1 || preg_match('/^.*[0-9].*$/', $Filename)==1)) {
+	if(preg_match('/^[a-zA-Z0-9]{8,20}$/', $Password)==1 && preg_match('/^.*[a-z].*$/', $Password)==1 && preg_match('/^.*[A-Z].*$/', $Password)==1 && preg_match('/^.*[0-9].*$/', $Password)==1 && preg_match('/^[a-zA-Z0-9]{3,63}$/', $Filename)==1) {
                 $command = "/usr/bin/save_restore_config save"+" "+escapeshellarg($Filename)+" "+escapeshellarg($Password);
                 $output = exec($command);
         }
@@ -40,7 +41,6 @@ if (($_POST['FileName'] != "") && ($_POST['UserInputPassword'] != "")) {
                 $saveStatus = Number(trim($output[$output.length -1]));
         }
         if ($saveStatus != 0) {
-                $result = "Failure!";
                 LogStr(" : webui_event:save_restore_config_failed");
         } else {
                 $result = "Success!";
