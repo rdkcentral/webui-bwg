@@ -748,21 +748,8 @@ function init_form()
 		}
 
 		var isDfsPlatformSupported = ("<?% echo( $DFS_Support1); ?>" == "true");
-		if ("165" == $(this).val()){
-			$('[name="channel_bandwidth1"]:not([value="20MHz"])').prop("disabled", true);
-		}
-		else{
-			/*
-			 * Re-enable bandwidth options for non-165 channels,
-			 * but preserve DFS-at-boot restrictions.
-			 */
-			$('[name="channel_bandwidth1"]').prop("disabled", false);
-
-			if (isDfsPlatformSupported && $dfsBoot == "false") {
-				$("#channel_bandwidth3").prop("disabled", true);
-			}
-		}
-	});
+		$("#channel_bandwidth3").prop("disabled", isDfsPlatformSupported && $dfsBoot == "false");
+	}).trigger("change");
 
 	//re-style for 802.11ac
 	$("#wireless_mode").val("<?% echo( $wireless_mode); ?>");
