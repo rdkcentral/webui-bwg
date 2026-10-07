@@ -77,7 +77,8 @@ $wifi_param = {
 	"DefaultKeyPassphrase"	: "Device.WiFi.AccessPoint."+$id+".Security.X_COMCAST-COM_DefaultKeyPassphrase",
 	"AccessPoint_4_Enable"	: "Device.WiFi.AccessPoint.4.Enable",
 	"1_SupportedStandards"	: "Device.WiFi.Radio.1.SupportedStandards",
-	"2_SupportedStandards"	: "Device.WiFi.Radio.2.SupportedStandards" 
+	"2_SupportedStandards"	: "Device.WiFi.Radio.2.SupportedStandards",
+	"DFS_Support1"		: "Device.WiFi.Radio.2.X_COMCAST_COM_DFSSupport" //1-supported 0-not supported
 	}/*p2j-array*/;
 if(getStr("Device.WiFi.AccessPoint."+$id+".Security.X_CISCO_COM_WEPKey64BitNumberOfEntries")=="0")
 delete $wifi_param["network_pass_64"];
@@ -118,6 +119,8 @@ $possible_channels	= $wifi_value['possible_channels'];
 $defaultSSID		= ($id == 3)?"":$wifi_value['DefaultSSID'];
 $defaultKeyPassphrase	= ($id == 3)?"":$wifi_value['DefaultKeyPassphrase'];
 $WifiPersonalizationEnable = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_WiFiNeedsPersonalization");
+$DFS_Support1		= $wifi_value['DFS_Support1'];
+$dfsAtBootup		= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFSatBootUp.Enable");
 
 if(($isDeviceCBR) || ($isDeviceBWG)){
 	$RadiusServerIPAddr 	= $wifi_value["RadiusServerIPAddr"];
@@ -323,6 +326,7 @@ function restyle_div(){
 
 $(document).ready(function() {
     comcast.page.init("Gateway > Connection > Wireless > Edit <?% echo( $radio_band); ?> GHz", "nav-wifi-config");
+	var $dfsBoot = '<?% echo($dfsAtBootup); ?>';
 	$('#pop_dialog').hide();
 	$("#wireless_network_switch").radioswitch({
 		id: "wireless-network-switch",
@@ -673,6 +677,10 @@ wpa2psk ==> 8 to 63 Ascii characters
                         }, 1500); 
 		}
     });
+
+		if(("<?% echo( $DFS_Support1); ?>" == "true") && $dfsBoot=="false"){
+		$("#channel_bandwidth3").prop("disabled", true);
+		}
 });
 
 function init_form()
@@ -738,7 +746,12 @@ function init_form()
 					}
 			});
 		}
-	});
+
+		var isDfsPlatformSupported = ("<?% echo( $DFS_Support1); ?>" == "true");
+		if (isDfsPlatformSupported && $dfsBoot == "false") {
+			$("#channel_bandwidth3").prop("disabled", true);
+		}
+	}).trigger("change");
 
 	//re-style for 802.11ac
 	$("#wireless_mode").val("<?% echo( $wireless_mode); ?>");
