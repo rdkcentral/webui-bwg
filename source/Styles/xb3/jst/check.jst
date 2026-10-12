@@ -693,7 +693,13 @@ $clientIp = client_IP();
 				$cm_ip.push($cm_ips[$cm_ip_index]);
 			}
 		}
-		$remote_ip      = get_ips("erouter0");
+		$remote_if = "erouter0";
+		$wanStatus = getStr("Device.X_RDK_WanManager.InterfaceActiveStatus");
+		if (strtolower($currentOpMode) != "ethernet" &&
+			(strstr($wanStatus, "WANOE,1") || strstr($wanStatus, "EPON,1") || strstr($wanStatus, "XGSPON,1"))){
+			$remote_if = getStr("Device.X_RDK_WanManager.CurrentActiveInterface");
+		}
+		$remote_ip = get_ips($remote_if);
 		$server_port = $_SERVER["SERVER_PORT"];
 		 $bridge_mode = getStr("Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanMode");
 		 if ($bridge_mode != 'router')
