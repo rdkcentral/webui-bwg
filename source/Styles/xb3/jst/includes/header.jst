@@ -35,8 +35,15 @@ csrfProtector.init();
 	$passVal= getStr("Device.Users.User.2.X_RDKCENTRAL-COM_ComparePassword");
         $curr_sessID = session_id();
 	$url = $_SERVER['HTTP_HOST'];
-	$Wan_IPv4 = getStr("Device.X_CISCO_COM_CableModem.IPAddress");
-	$Wan_IPv6 = getStr("Device.X_CISCO_COM_CableModem.IPv6Address");
+	$wan_enabled = getStr("Device.Ethernet.X_RDKCENTRAL-COM_WAN.Enabled");
+	$wanStatus = getStr("Device.X_RDK_WanManager.InterfaceActiveStatus");
+	if ($wan_enabled == "true" || strstr($wanStatus, "EPON,1") || strstr($wanStatus, "XGSPON,1")){
+		$Wan_IPv4 = getStr("Device.DeviceInfo.X_COMCAST-COM_WAN_IP");
+		$Wan_IPv6 = getStr("Device.DeviceInfo.X_COMCAST-COM_WAN_IPv6");
+	}else{
+		$Wan_IPv4 = getStr("Device.X_CISCO_COM_CableModem.IPAddress");
+		$Wan_IPv6 = getStr("Device.X_CISCO_COM_CableModem.IPv6Address");
+	}
 
 	//if user is entering literal IPv6 address then remove "[" and "]"
 	$url = str_replace("[","",$url);
