@@ -522,7 +522,8 @@ $clientIp = client_IP();
 	}
 	function get_cm_ip_addresses(){
 		$wan_enabled = getStr("Device.Ethernet.X_RDKCENTRAL-COM_WAN.Enabled");
-		if ($wan_enabled == "true"){
+		$wanStatus = getStr("Device.X_RDK_WanManager.InterfaceActiveStatus");
+		if ($wan_enabled == "true" || strstr($wanStatus, "EPON,1") || strstr($wanStatus, "XGSPON,1")){
 			$Wan_IPv4 = getStr("Device.DeviceInfo.X_COMCAST-COM_WAN_IP");
 			$Wan_IPv6 = getStr("Device.DeviceInfo.X_COMCAST-COM_WAN_IPv6");
 		}else{
@@ -554,7 +555,7 @@ $clientIp = client_IP();
 	function checkCusadminAccess($ip_addr){
                 $remote_ip      = get_ips("erouter0");
                 $server_port = $_SERVER["SERVER_PORT"];
-                if (in_array($ip_addr, $remote_ip)){
+				if (ip_in_array($ip_addr, $remote_ip)){
                         if((strtolower($currentOpMode) =="ethernet") && ($_POST["username"] == "cusadmin"))
                         {
                                 $remoteAcess= getStr("Device.UserInterface.X_CISCO_COM_RemoteAccess.Enable");
@@ -600,10 +601,11 @@ $clientIp = client_IP();
 		if (ip_in_array($ip_addr, $lan_ip)){
 			return "lan_ip";
 		}
-		else if (ip_in_array($ip_addr, $cm_ip)){
+		else if (ip_in_array($ip_addr, $cm_ip) &&
+			!($_POST["username"] == "cusadmin" && ip_in_array($ip_addr, $remote_ip))){
 			return "cm_ip";
 		}
-		else if (in_array($ip_addr, $remote_ip)){
+		else if (ip_in_array($ip_addr, $remote_ip)){
 			if(strtolower($currentOpMode) =="ethernet"){
                                 return checkCusadminAccess($ip_addr);
                         }else{
