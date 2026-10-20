@@ -764,10 +764,10 @@ $(document).ready(function() {
 			//40MHz
 			if ($("#channel_bandwidth1").prop("checked")) {
 				if ("BelowControlChannel" == "<?% echo( $ext_channel1); ?>"){
-					$("#channel_number1").find("[value='36'],[value='44'],[value='52'],[value='60'],[value='100'],[value='108'],[value='116'],[value='132'],[value='140'],[value='144'],[value='149'],[value='157'],[value='165']").prop("disabled", true).prop("selected", false);
+					$("#channel_number1").find("[value='116'],[value='140'],[value='144'],[value='165']").prop("disabled", true).prop("selected", false);
 				}	
-				else{	//AboveControlChannel or Auto  //zqiu: exclude 116,140
-					$("#channel_number1").find("[value='40'],[value='48'],[value='56'],[value='64'],[value='104'],[value='112'],[value='116'],[value='136'],[value='140'],[value='144'],[value='153'],[value='161'],[value='165']").prop("disabled", true).prop("selected", false);
+				else{	//AboveControlChannel or Auto
+					$("#channel_number1").find("[value='116'],[value='140'],[value='144'],[value='165']").prop("disabled", true).prop("selected", false);
 				}
 			} 
 			//80MHz
