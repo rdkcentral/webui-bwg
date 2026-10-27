@@ -82,7 +82,7 @@ if(!$isMSO) {
 	$secureWebUIRedirectPartner = !strcmp($partnerId, "comcast");
 	if ($secureWebUIRedirectPartner && !strcmp($SecWebUI, "true")) {
 		if (!strcmp($url, $ip_addr) || (!strcmp($url, $LocFqdn) && $_SERVER["SERVER_PORT"] == "80")) {
-			header('Location:https://'.$LocFqdn);
+			header('Location:https://' + $LocFqdn);
 			exit(0);
 		}
 	}
