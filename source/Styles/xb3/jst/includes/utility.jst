@@ -660,6 +660,28 @@ function time_date_conflict($TD1, $TD2) {
 	}
 	return $ret;
 }
+function getFirstDownstreamIpInterface(){
+	$fistDSif = "";
+	$wanManagerVersion = getStr("Device.X_RDK_WanManager.Version");
+	if($wanManagerVersion < 1.5) {
+		$fistDSif = getStr("com.cisco.spvtg.ccsp.pam.Helper.FirstDownstreamIpInterface");
+	}
+	else {
+		$rootObjName    = "Device.IP.Interface.";
+		$paramNameArray = ["Device.IP.Interface."]/*p2j-array*/;
+		$mapping_array  = ["Alias"]/*p2j-array*/;
+		$ipInstanceArr = getParaValues($rootObjName, $paramNameArray, $mapping_array, true);
+		ipInstanceLoop: for($key in $ipInstanceArr) {
+			$value = $ipInstanceArr[$key];/*p2j-foreach*/
+			if($value["Alias"] == "Primary LAN"){
+				$fistDSif = $rootObjName+$value["__id"]+".";
+				break ipInstanceLoop;
+			}
+		}
+	}
+	return $fistDSif;
+}
+
 // resolve IPV6 global address
 function resolve_IPV6_global_address($address1, $address3){
 	// IPV6 address can be "global address", "EMPTY" [from STACK] or NOT-SET [from STACK]
