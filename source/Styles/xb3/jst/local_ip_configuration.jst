@@ -76,7 +76,7 @@ $ipv6_secondary_dns    = $ipv6_dns[1];
 
 $DHCPTime   = getStr("Device.DHCPv4.Server.Pool.1.LeaseTime");
 $ipv6_prefix = getStr("Device.IP.Interface.1.IPv6Prefix.1.Prefix");
-$interface = getStr("com.cisco.spvtg.ccsp.pam.Helper.FirstDownstreamIpInterface");
+$interface = getFirstDownstreamIpInterface();
 $DeviceMode = $device_ctrl_value["DeviceMode"];
 
 //CM GW IP Address
