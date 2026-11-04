@@ -54,7 +54,7 @@ if [ -d /nvram/certs ]; then
         exit 127
     fi
     mkdir -p /tmp/.webui/
-    ID="/tmp/trpfizyanrln"
+    ID="/tmp/myrouter-webui"
     GetConfigFile $ID
     cp /nvram/certs/myrouter.io.cert.pem /tmp/.webui/
     #lighttpd expects file with key and pem
