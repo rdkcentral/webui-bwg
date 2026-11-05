@@ -423,6 +423,7 @@ else {
 		array_remove($ssids, 1); 
 		array_remove($ssids, 0);
 	}
+	$mac_ssid_v_js = getValidatedMacSsidValueJs();
 	$dfsEnable		= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFS.Enable");
 	$dfsAtBootup	= getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.DFSatBootUp.Enable");
 
@@ -978,10 +979,11 @@ $(document).ready(function() {
 	}
 });
 setTimeout(function(){
-	var mac_ssid_GET	= "<?% echo( $_GET['mac_ssid']);?>";
-	var ssids = "<?% echo( $ssids);?>";
-	if((ssids.includes(mac_ssid_GET)) && mac_ssid_GET) {
-		$("#mac_ssid").val(mac_ssid_GET);
+	var mac_ssid_GET = <?% echo($mac_ssid_v_js);?>;
+	if (mac_ssid_GET !== "") {
+		if ($("#mac_ssid option[value='"+mac_ssid_GET+"']").length > 0) {
+			$("#mac_ssid").val(mac_ssid_GET);
+		}
 	}
 	update_Wi_Fi_control_list();
 }, 100);
