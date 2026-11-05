@@ -78,7 +78,6 @@ function client_IP()
     $fp=fopen($FILEID,"r");
     if($fp)
     {
-                                
         $pos = 0;
         $buffer=trim(substr(fgets($fp),$pos));
         fclose($fp);
@@ -125,15 +124,16 @@ $Device_IP = "";
 $clientIp = client_IP();
 
     if (isset($_POST["username"]))
-	{
-                $iface = if_type( $server_ip );
-                if ($iface == "cm_ip") {
-                    $Device_IP = getStr("Device.X_CISCO_COM_CableModem.IPv6Address");
-                }
-                if ($iface == "lan_ip") {
-                    $Device_IP = getStr("Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanIPAddress");
-                }
-                LogBeginLoginAttempt();
+    {
+        $iface = if_type( $server_ip );
+        if ($iface == "cm_ip") {
+            $Device_IP = getStr("Device.X_CISCO_COM_CableModem.IPv6Address");
+        }
+        if ($iface == "lan_ip") {
+            $Device_IP = getStr("Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanIPAddress");
+        }
+        LogBeginLoginAttempt();
+
 		/*=============================================*/
 		// $dev_mode = true;
 		/*if (file_exists("/var/ui_dev_mode")) {
@@ -155,8 +155,14 @@ $clientIp = client_IP();
 		}*/
 		/*===============================================*/
 
+		LogStr(" : webui_event:login_user = " + $_POST["username"]);
         if ($_POST["username"] == "mso")
-	{
+        {
+			if($iface != "cm_ip"){
+				LogStr(" : Unauthorized attempt to access the page as " + $_POST["username"] + " user over IP " + $clientIp);
+				sendError('<script type="text/javascript"> alert($.i18n("Incorrect username to access this page!")); history.back(); </script>');
+				exit(0);
+			}
             if ($iface == "lan_ip" || $iface == "docsis_ip") {
                 LogStr(" : Unauthorized attempt to access the page as " + $_POST["username"] + " user" );
                 sendError('<script type="text/javascript"> alert($.i18n("Incorrect username to access this page!")); history.back(); </script>');
@@ -178,8 +184,7 @@ $clientIp = client_IP();
                     $pass_sha = SHA256($_POST["password"]);
                     $pass_hex = asc2hex($pass_sha);
                     $str = " : Attempted password = " + $pass_hex;
-                    LogStr( $str ); 
-                    
+                    LogStr( $str );
                     //triggering password validation in back end if "potd" or "mixed" and a password is supplied
                     $return_status = setStr("Device.Users.User.1.X_CISCO_COM_Password",$_POST["password"],true);
                     sleep(1);
@@ -427,7 +432,14 @@ $clientIp = client_IP();
         if (isset($_GET['token']))
         {
             $ADToken = $_GET['token'];
-            $tokenvalid = VerifyToken( $ADToken );
+            $tokenvalid = false;
+            if (typeof($ADToken) == "string") {
+                $tokensegs = explode('.', $ADToken);
+                $cnt = count($tokensegs);
+                if ($cnt == 3) {
+                    $tokenvalid = VerifyToken( $ADToken );
+                }
+            }
             if( $tokenvalid == true )
             {
                 LogStr( " : OAUTH SUCCESS" );
@@ -555,11 +567,11 @@ $clientIp = client_IP();
 		}
 		$remote_ip      = get_ips("erouter0");
 		$server_port = $_SERVER["SERVER_PORT"];
-		 $bridge_mode = getStr("Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanMode");
-		 if ($bridge_mode != 'router')
-			 $lan_ip = get_ips("lan0");
-		 else
-			 $lan_ip = get_ips("brlan0");
+		$bridge_mode = getStr("Device.X_CISCO_COM_DeviceControl.LanManagementEntry.1.LanMode");
+		if ($bridge_mode != 'router')
+			$lan_ip = get_ips("lan0");
+		else
+			$lan_ip = get_ips("brlan0");
 
 		$ip_addr = parseIP($ip_addr);
 		if (in_array($ip_addr, $lan_ip)){
@@ -570,9 +582,8 @@ $clientIp = client_IP();
 		}
 		else if (in_array($ip_addr, $remote_ip)){
 			if(strtolower($currentOpMode) =="ethernet"){
-                                return checkCusadminAccess($ip_addr);
-                        }else{
-
+				return checkCusadminAccess($ip_addr);
+			}else{
 				if (strpos($ip_addr, ':') !== false && ($server_port == '80' || $server_port == '443')) {
 					return "remote_ip";
 				}
@@ -593,21 +604,21 @@ $clientIp = client_IP();
 	}
 function create_session(){
 		session_create();
-                $curr_sessID = session_id();
-                $curr_IP = $_SERVER['REMOTE_ADDR'];
-                if (($modelName != "CGA4131COM") && ($modelName != "CGA4332COM")) {
-                    // session IP binding
-                    if (!isset($_SESSION['PREV_REMOTEADDR'])) {
-                        $_SESSION['PREV_REMOTEADDR'] = $_SERVER['REMOTE_ADDR'];
-                    }
-                    if ($_SERVER['REMOTE_ADDR'] != $_SESSION['PREV_REMOTEADDR']) {
-                        session_destroy(); // Destroy all data in session
-                        echo( '<script type="text/javascript">alert("Please Login First!"); location.href="home_loggedout.jst";</script>');
-                        exit(0);
-                    }
-                }
-                else
-                {
+		$curr_sessID = session_id();
+		$curr_IP = $_SERVER['REMOTE_ADDR'];
+		if (($modelName != "CGA4131COM") && ($modelName != "CGA4332COM")) {
+			// session IP binding
+			if (!isset($_SESSION['PREV_REMOTEADDR'])) {
+				$_SESSION['PREV_REMOTEADDR'] = $_SERVER['REMOTE_ADDR'];
+			}
+			if ($_SERVER['REMOTE_ADDR'] != $_SESSION['PREV_REMOTEADDR']) {
+				session_destroy(); // Destroy all data in session
+				echo( '<script type="text/javascript">alert("Please Login First!"); location.href="home_loggedout.jst";</script>');
+				exit(0);
+			}
+		}
+		else
+		{
 			if ( strcmp($_SERVER['REMOTE_ADDR'], "172.31.255.45") == 0 ||
 		        strcasecmp($_SERVER['REMOTE_ADDR'], "fe80::ffff:ac1f:ff2d") == 0 ||
 		        strcasecmp($_SERVER['REMOTE_ADDR'], "fd00::ffff:ac1f:ff2d") == 0 ) {
@@ -618,25 +629,25 @@ function create_session(){
 			$fp=fopen($FILEID,"r");
                         if($fp)
                         {
-                                $pos = 0;
-                                $buffer=trim(substr(fgets($fp),$pos));
-                                fclose($fp);
-                                $OutIP = explode(" ", $buffer);
-                                exec("rm "+ $FILEID);
-                                $AcPort = $OutIP[1];
-                                if ($AcPort == 80 || $AcPort == 443)
-                                {
-                                    $IP_ADDR = $OutIP[0];
-                                    if (!isset($_SESSION['PREV_REMOTEADDR'])) {
-                                        $_SESSION['PREV_REMOTEADDR'] = $IP_ADDR;
-                                    }
-                                }
-                                else
-                                {
-                                    if (isset($_SESSION['PREV_REMOTEADDR'])) {
-                                        $IP_ADDR = $_SESSION['PREV_REMOTEADDR'];
-                                    }
-                                }
+							$pos = 0;
+							$buffer=trim(substr(fgets($fp),$pos));
+							fclose($fp);
+							$OutIP = explode(" ", $buffer);
+							exec("rm "+ $FILEID);
+							$AcPort = $OutIP[1];
+							if ($AcPort == 80 || $AcPort == 443)
+							{
+								$IP_ADDR = $OutIP[0];
+								if (!isset($_SESSION['PREV_REMOTEADDR'])) {
+									$_SESSION['PREV_REMOTEADDR'] = $IP_ADDR;
+								}
+							}
+							else
+							{
+								if (isset($_SESSION['PREV_REMOTEADDR'])) {
+									$IP_ADDR = $_SESSION['PREV_REMOTEADDR'];
+								}
+							}
                         }
                     }
                     else {
