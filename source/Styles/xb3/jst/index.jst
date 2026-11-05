@@ -38,6 +38,9 @@ $Wan_IPv6 = getStr("Device.X_CISCO_COM_CableModem.IPv6Address");
 $url = str_replace("[","",$url);
 $url = str_replace("]","",$url);
 $webuiEnabled = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.WebUI.Enable");
+$partnerId = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_Syndication.PartnerId");
+$SecWebUI = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureWebUI.Enable");
+$LocFqdn = getStr("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.SecureWebUI.LocalFqdn");
 $webuiIsEnabled = "true";
 if(!strcmp($url, $Wan_IPv4) || (inet_pton($url) == inet_pton($Wan_IPv6))){
 	$isMSO  = true;
@@ -74,6 +77,15 @@ $psmMode = $DeviceControl_value['psmMode'];
 
 if(!$isMSO) {
         setStr("Device.DeviceInfo.X_RDKCENTRAL-COM_UI_ACCESS","ui_access",true);
+	$SERVER_ADDR = $_SERVER['SERVER_ADDR'];
+	$ip_addr = strpos($SERVER_ADDR, ":") == false ? $LanGwIPv4 : $LanGwIPv6;
+	$secureWebUIRedirectPartner = !strcmp($partnerId, "comcast");
+	if ($secureWebUIRedirectPartner && !strcmp($SecWebUI, "true")) {
+		if (!strcmp($url, $ip_addr) || (!strcmp($url, $LocFqdn) && $_SERVER["SERVER_PORT"] == "80")) {
+			header('Location:https://' + $LocFqdn);
+			exit(0);
+		}
+	}
 	if(($webuiEnabled == "Disable") || ($webuiEnabled == "MSOonly")){
         	$webuiIsEnabled="false";
         }
