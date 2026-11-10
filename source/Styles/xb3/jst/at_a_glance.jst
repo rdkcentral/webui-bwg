@@ -195,7 +195,7 @@ $(document).ready(function() {
 					else {
 						$("#bridge_switch").radioswitch("doSwitch", "off");
 						changeBridge(false);
-					}
+					$("[name=bridge_method]").change(function(){
 				});//end of jConfirm
 
 			}, 200);
@@ -203,6 +203,14 @@ $(document).ready(function() {
 		else {
 			changeBridge(true);
 		}
+	});
+
+	$("input[type='checkbox'][data-password-field]").change(function() {
+		var passId = $(this).data("password-field");
+		var passValue = $("#" + passId).val();
+		var fieldType = $(this).is(":checked") ? "text" : "password";
+		$("#" + passId).replaceWith('<input type="' + fieldType + '" id="' + passId + '" class="pass_key" value="" readonly />');
+		$("#" + passId).val(passValue);
 	});
 
 	$("[name=bridge_method]").change(function(){
@@ -316,8 +324,12 @@ function popUp(URL) {
 					echo( '</div>');
 					if ("cusadmin" == $_SESSION["loginuser"] || "mso" == $_SESSION["loginuser"]) {
 						echo( '<div class="form-row even">');
-							echo( '<span class="readonlyLabel">Wi-Fi Passkey:</span>');
-							echo( '<span class="value noTrimSpace">');echo( $wifi_passkey);echo( '</span>');
+							echo( '<label for="wifi_passkey1" class="readonlyLabel pass_key_label">Wi-Fi Passkey:</label>');
+							echo( '<span id="password_field1"><input type="password" class="pass_key" id="wifi_passkey1" readonly value="');echo( htmlspecialchars($wifi_passkey));echo( '" /></span>');
+						echo( '</div>');
+						echo( '<div class="form-row even">');
+							echo( '<label for="password_show1">Show Wi-Fi Passkey:</label>');
+							echo( '<span class="checkbox"><input type="checkbox" id="password_show1" data-password-field="wifi_passkey1" /></span>');
 						echo( '</div>');
 					}
 				echo( '</div>');
@@ -330,8 +342,12 @@ function popUp(URL) {
 					echo( '</div>');
 					if ("cusadmin" == $_SESSION["loginuser"] || "mso" == $_SESSION["loginuser"]) {
 						echo( '<div class="form-row even">');
-							echo( '<span class="readonlyLabel">Wi-Fi Passkey (2.4 GHz):</span>');
-							echo( '<span class="value noTrimSpace">');echo( $wifi_24_passkey);echo( '</span>');
+							echo( '<label for="wifi_passkey24" class="readonlyLabel pass_key_label">Wi-Fi Passkey (2.4 GHz):</label>');
+							echo( '<span id="password_field24"><input type="password" class="pass_key" id="wifi_passkey24" readonly value="');echo( htmlspecialchars($wifi_24_passkey));echo( '" /></span>');
+						echo( '</div>');
+						echo( '<div class="form-row even">');
+							echo( '<label for="password_show24">Show Wi-Fi Passkey (2.4 GHz):</label>');
+							echo( '<span class="checkbox"><input type="checkbox" id="password_show24" data-password-field="wifi_passkey24" /></span>');
 						echo( '</div>');
 					}
 				echo( '</div>');
@@ -342,8 +358,12 @@ function popUp(URL) {
 					echo( '</div>');
 					if ("cusadmin" == $_SESSION["loginuser"] || "mso" == $_SESSION["loginuser"]) {
 						echo( '<div class="form-row odd">');
-							echo( '<span class="readonlyLabel">Wi-Fi Passkey (5 GHz):</span>');
-							echo( '<span class="value noTrimSpace">');echo( $wifi_50_passkey);echo( '</span>');
+							echo( '<label for="wifi_passkey50" class="readonlyLabel pass_key_label">Wi-Fi Passkey (5 GHz):</label>');
+							echo( '<span id="password_field50"><input type="password" class="pass_key" id="wifi_passkey50" readonly value="');echo( htmlspecialchars($wifi_50_passkey));echo( '" /></span>');
+						echo( '</div>');
+						echo( '<div class="form-row odd">');
+							echo( '<label for="password_show50">Show Wi-Fi Passkey (5 GHz):</label>');
+							echo( '<span class="checkbox"><input type="checkbox" id="password_show50" data-password-field="wifi_passkey50" /></span>');
 						echo( '</div>');
 					}
 				echo( '</div>');
