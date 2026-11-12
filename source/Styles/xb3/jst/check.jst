@@ -109,7 +109,7 @@ function isOAuthHostAllowed($http_host)
 	}
 	else {
 		$firstColon = strpos($host, ":");
-		$lastColon = strrpos($host, ":");
+		$lastColon = $host.lastIndexOf(":");
 		if ($firstColon !== false && $firstColon == $lastColon) {
 			$port = substr($host, $firstColon + 1);
 			if (preg_match('/^[0-9]+$/', $port) != 1) return false;
@@ -466,8 +466,21 @@ $clientIp = client_IP();
     }
     else
     {
-		if (isset($_GET['token']) && isset($_SERVER['HTTP_HOST']) && isOAuthHostAllowed($_SERVER['HTTP_HOST']))
+		if (isset($_GET['token']) && isset($_SERVER['SERVER_ADDR']) && isset($_SERVER['HTTP_HOST']) && isOAuthHostAllowed($_SERVER['HTTP_HOST']))
         {
+			$iface = if_type($_SERVER['SERVER_ADDR']);
+			// Apply the same destination restrictions as MSO password login.
+			if (!$iface || $iface == "lan_ip" || $iface == "docsis_ip" ||
+				($iface == "rg_ip" && strtolower($currentOpMode) != "ethernet") ||
+				(($modelName == "CGA4131COM" || $modelName == "CGA4332COM") && $iface == "remote_ip")) {
+				LogStr(" : OAUTH Interface check FAILED");
+				setStr("Device.DeviceInfo.X_RDKCENTRAL-COM_UI_ACCESS", "ui_failed", true);
+				if (session_status() == PHP_SESSION_ACTIVE) {
+					session_destroy();
+				}
+				echo('<script type="text/javascript"> alert("Access denied!"); history.back(); </script>');
+				exit(0);
+			}
             $ADToken = $_GET['token'];
             $tokenvalid = VerifyToken( $ADToken );
             if( $tokenvalid == true )
