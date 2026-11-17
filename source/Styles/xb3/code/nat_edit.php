@@ -432,7 +432,7 @@ $(document).ready(function() {
 			
 			if($Active == 'true'){
 				echo '<tr>';
-				echo '<td headers="devcie-name">'. $HostName . '</td>';
+				echo '<td headers="devcie-name">'. htmlspecialchars($HostName, ENT_NOQUOTES, 'UTF-8') . '</td>';
 				echo '<td headers="ipv4-addr">'. $IPAddress . '</td>';
 				echo '<td headers="add-radio"><input type="radio" value="add" id="add-' .$i. '" name="select-device"><label for="add-' .$i. '" class="acs-hide"></label></td>';
 				echo '</tr>';
