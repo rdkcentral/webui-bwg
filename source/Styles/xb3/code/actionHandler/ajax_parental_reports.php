@@ -116,6 +116,14 @@ foreach ($firewall_log as $key=>$value){
 }
 fclose($fh);
 
+
+$fh1=fopen("/tmp/parental_reports_test_".$mode."_".$timef.".txt","w");
+foreach ($firewall_log as $key=>$value){
+	fwrite($fh1, $value["Des"].", ".$value["Count"]." Attempts, ".$value["time"]."\t".$value["Type"]."\r\n");
+}
+fclose($fh1);
+
+
 header("Content-Type: application/json");
 echo htmlspecialchars(json_encode($firewall_log), ENT_NOQUOTES, 'UTF-8');
 	
