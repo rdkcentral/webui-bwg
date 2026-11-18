@@ -827,7 +827,6 @@ $(document).ready(function() {
 					$macEntry="1";
 					break;
 				}
-			$disconnectInfoAttr = htmlspecialchars(json_encode(array('gre_ssid' => (string)$gre_ssid, 'dev_name' => $Hostname, 'mac_addr' => $MACAddress)), ENT_QUOTES, 'UTF-8');
 			}			
 	      		if ($j == 0 || $j == 2) {
 	      			$gre_ssid = 1;
@@ -843,6 +842,7 @@ $(document).ready(function() {
 
 	      		}
 
+			$disconnectInfoAttr = htmlspecialchars(json_encode(array('gre_ssid' => (string)$gre_ssid, 'dev_name' => $Hostname, 'mac_addr' => $MACAddress)), ENT_QUOTES, 'UTF-8');
 	         	if($i % 2) $odd = "";
 					else $odd = " class='odd'";
 
