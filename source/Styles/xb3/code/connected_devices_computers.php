@@ -528,7 +528,6 @@ $(document).ready(function() {
 		    for ($i=0,$j=0,$k=0,$x=0; $i < $HostNum; $i++) { 
 
                 $Host["$i"]['instanceID'] = $i + 1;
-				$Host[$i]['HostName'] = htmlspecialchars($Host[$i]['HostName'], ENT_NOQUOTES, 'UTF-8');
                 $Host[$i]['Comments'] = htmlspecialchars($Host[$i]['Comments'], ENT_NOQUOTES, 'UTF-8');
                 $tmpHost = ProcessLay1Interface( $Host["$i"]['Layer1Interface']);
 

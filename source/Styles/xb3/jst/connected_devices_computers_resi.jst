@@ -629,7 +629,7 @@
 		if(preg_match("/@/",$commentsOnline1)){
                         $commentsOnline1= $commentsOnline1.replace(/@/g, "<br/>");
  		}
-                $dev_name = $onlinePrivateNetworkHost[$x.toString()]['HostName'];
+                $dev_name = $onlinePrivateNetworkHost[$x.toString()]['HostName'].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 		$dev_name_attr = htmlspecialchars($dev_name, ENT_NOQUOTES, 'UTF-8').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
                 $mac_addr = $onlinePrivateNetworkHost[$x.toString()]['PhysAddress'];
 		$dev_info_attr = htmlspecialchars(json_encode({"dev_name":$dev_name,"mac_addr":$mac_addr}), ENT_NOQUOTES, 'UTF-8').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -640,7 +640,7 @@
                                 else $odd = " class='odd'";
                 echo( '<tr' +$odd+ '>');
                 echo('<td headers="host-name"><a href="javascript:void(0)" tabindex="0" class="label device-name private"><u>');
-                echo(htmlspecialchars($onlinePrivateNetworkHost[$x.toString()]['HostName'], ENT_NOQUOTES, 'UTF-8'));
+                echo($onlinePrivateNetworkHost[$x.toString()]['HostName']);
                 echo('</u></a>');
                 echo('<div class="device-info">');
                 echo('<dl><dd><br/></dd>');
@@ -703,7 +703,7 @@
 	 if(preg_match("/@/",$commentsOffline1)){
                 $commentsOffline1= $commentsOffline1.replace(/@/g, "<br/>");
  	}
-        $dev_name = $offlinePrivateNetworkHost[$x.toString()]['HostName'];
+        $dev_name = $offlinePrivateNetworkHost[$x.toString()]['HostName'].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 	$dev_name_attr = htmlspecialchars($dev_name, ENT_NOQUOTES, 'UTF-8').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
         $mac_addr = $offlinePrivateNetworkHost[$x.toString()]['PhysAddress'];
 	$dev_info_attr = htmlspecialchars(json_encode({"dev_name":$dev_name,"mac_addr":$mac_addr}), ENT_NOQUOTES, 'UTF-8').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -714,7 +714,7 @@
         else $odd = " class='odd'";
                 echo('<tr' +  $odd + '>');
                 echo('<td headers="offline-device-host-name"><a href="javascript:void(0)" tabindex="0" class=\"label device-name private\"><u>');
-                echo(htmlspecialchars($offlinePrivateNetworkHost[$x.toString()]['HostName'], ENT_NOQUOTES, 'UTF-8'));
+                echo($offlinePrivateNetworkHost[$x.toString()]['HostName']);
                 echo('</u></a>');
                 echo('<div class=\"device-info\">');
                 echo("<dl><dd><br/></dd>");
@@ -892,7 +892,7 @@ for ($i=0; $i < $onlinePrivateNetworkHost['hostNum']; $i++) {
         <form id='pageForm-" +$ID+"'  class='pageForm'>\
         <div  class=\"form-row\">\
                         <span  class='readonlyLabel' name='host_name'>Host Name:</span>\
-                        <span  class='value'>"+htmlspecialchars($onlinePrivateNetworkHost[$i.toString()]['HostName'], ENT_NOQUOTES, 'UTF-8')+"</span>\
+                        <span  class='value'>"+$onlinePrivateNetworkHost[$i.toString()]['HostName']+"</span>\
                         </div>\
                         <div  class='form-row odd'>\
                         <span  class='readonlyLabel'>Connection:</span>\
@@ -955,7 +955,7 @@ for ($i=0; $i < $offlinePrivateNetworkHost['hostNum']; $i++) {
                 <form id=\"pageForm-" +$ID+"\" class=\"pageForm\">\
                 <div  class=\"form-row\">\
                 <span  class=\"readonlyLabel\" name=\"host_name\">Host Name:</span>\
-                <span  class=\"value\">"+htmlspecialchars($offlinePrivateNetworkHost[$i.toString()]['HostName'], ENT_NOQUOTES, 'UTF-8')+"</span>\
+                <span  class=\"value\">"+$offlinePrivateNetworkHost[$i.toString()]['HostName']+"</span>\
                 </div>\
                 <div  class=\"form-row odd\">\
                 <span  class=\"readonlyLabel\">Connection:</span>\
