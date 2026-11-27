@@ -644,7 +644,7 @@ $(document).ready(function() {
 		}else{
 			$("#channel_bandwidth3").prop("disabled", false);
 		}
-	}).trigger("change");
+	});
 
     $("[name='channel']").change(function() {
 		if($("#channel_automatic").is(":checked") || (MeshEnable=="true") || (HCMEnable == 'Enable')) {
