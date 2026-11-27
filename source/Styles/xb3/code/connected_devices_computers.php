@@ -362,19 +362,19 @@ $(document).ready(function() {
 		    e.preventDefault();
 		    var message = ($(this).attr("title").length > 0) ? "Are you sure you want to " + $(this).attr("title") + "?" : "Are you sure?";
 		    var name = $(this).attr('name');
-		    var devInfo = eval("("+name+")");
+		    var devInfo = JSON.parse(name);
 		    //alert(devInfo.mac_addr);
 
 		    if($(this).hasClass('XfinitySSID')){
-				var devBlockInfo = '{"XfinitySSID": "true", "hostName": "'+devInfo.dev_name+'", "macAddr": "'+devInfo.mac_addr+'"}';
+				var devBlockInfo = JSON.stringify({"XfinitySSID": "true", "hostName": devInfo.dev_name, "macAddr": devInfo.mac_addr});
 				var fileName = "wireless_network_configuration.php?mac_ssid=5";
 		    }
 		    else if($(this).hasClass('xhsSSID')){
-				var devBlockInfo = '{"xhsSSID": "true", "hostName": "'+devInfo.dev_name+'", "macAddr": "'+devInfo.mac_addr+'"}';
+				var devBlockInfo = JSON.stringify({"xhsSSID": "true", "hostName": devInfo.dev_name, "macAddr": devInfo.mac_addr});
 				var fileName = "wireless_network_configuration.php?mac_ssid=3";
 		    }
 		    else{
-			var devBlockInfo = '{"privateDevice": "true", "hostName": "'+devInfo.dev_name+'", "macAddr": "'+devInfo.mac_addr+'"}';	
+			var devBlockInfo = JSON.stringify({"privateDevice": "true", "hostName": devInfo.dev_name, "macAddr": devInfo.mac_addr});
 			var fileName = "managed_devices.php";
 		    }//end of else
 
@@ -528,7 +528,6 @@ $(document).ready(function() {
 		    for ($i=0,$j=0,$k=0,$x=0; $i < $HostNum; $i++) { 
 
                 $Host["$i"]['instanceID'] = $i + 1;
-				$Host[$i]['HostName'] = htmlspecialchars($Host[$i]['HostName'], ENT_NOQUOTES, 'UTF-8');
                 $Host[$i]['Comments'] = htmlspecialchars($Host[$i]['Comments'], ENT_NOQUOTES, 'UTF-8');
                 $tmpHost = ProcessLay1Interface( $Host["$i"]['Layer1Interface']);
 
@@ -620,14 +619,14 @@ $(document).ready(function() {
 	echo "<script type=\"text/javascript\">
         var onlineDeviceNum = ", $onlinePrivateNetworkHost['hostNum'] , "; 
         var onlineDeviceInstanceArr = ", json_encode($onlinePrivateInstanceArr) , ";
-        var onlineHostNameArr = ", json_encode($onlineHostNameArr) ,";
+        var onlineHostNameArr = ", json_encode($onlineHostNameArr, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ,";
 		var onlineHostMAC = ", json_encode($onlineHostMAC) ,";
 	</script>";
     if ("" == $offlinePrivateNetworkHost['hostNum']) $offlinePrivateNetworkHost['hostNum']=0;
         echo "<script type=\"text/javascript\">
         var offlineDeviceNum = ", $offlinePrivateNetworkHost['hostNum'] , ";
         var offlineDeviceInstanceArr = ", json_encode($offlinePrivateInstanceArr) , ";
-        var offlineHostNameArr = ", json_encode($offlineHostNameArr) ,";
+        var offlineHostNameArr = ", json_encode($offlineHostNameArr, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ,";
         var offlineHostMAC = ", json_encode($offlineHostMAC) ,";
         </script>";
 	?>	
@@ -641,17 +640,19 @@ $(document).ready(function() {
   		        $commentsOnline1=preg_replace("/@/","<br/>",$commentsOnline1);
  		} 
          	$dev_name = $onlinePrivateNetworkHost["$x"]['HostName'];
+		$dev_name_attr = htmlspecialchars($dev_name, ENT_QUOTES, 'UTF-8');
          	$mac_addr = $onlinePrivateNetworkHost["$x"]['PhysAddress'];
+		$dev_info_attr = htmlspecialchars(json_encode(array("dev_name" => $dev_name, "mac_addr" => $mac_addr)), ENT_QUOTES, 'UTF-8');
          	$AddrSrc  = $onlinePrivateNetworkHost["$x"]['AddressSource'];
 
 		if($onlinePrivateNetworkHost["$x"]['Blocked']) $style = "&nbsp;";
-		else $style = "<input type='button' id=" . "'online-X-" .$k. "'" . " value='X' tabindex='0' title=\"add this device to Blocked Devices List \" name='{\"dev_name\":\"$dev_name\", \"mac_addr\":\"$mac_addr\"}'  class=\"btn confirm private\"></input>";
+		else $style = "<input type='button' id=" . "'online-X-" .$k. "'" . " value='X' tabindex='0' title=\"add this device to Blocked Devices List \" name='$dev_info_attr'  class=\"btn confirm private\"></input>";
 
          	if($k % 2)  $odd = "";
 				else $odd = " class='odd'";
          	echo "
 		    <tr $odd>
-		        <td headers='host-name'><a href='javascript:void(0)' tabindex='0' class=\"label device-name private\"><u>" , $onlinePrivateNetworkHost["$x"]['HostName'] , "</u></a>
+		        <td headers='host-name'><a href='javascript:void(0)' tabindex='0' class=\"label device-name private\"><u>" , htmlspecialchars($onlinePrivateNetworkHost["$x"]['HostName'], ENT_NOQUOTES, 'UTF-8') , "</u></a>
 
 					<div class=\"device-info\">
 						<dl><dd><br/></dd>";
@@ -715,17 +716,19 @@ $(document).ready(function() {
           	$commentsOffline1=preg_replace("/@/","<br/>",$commentsOffline1);
  	}
     	$dev_name = $offlinePrivateNetworkHost["$x"]['HostName'];
+	$dev_name_attr = htmlspecialchars($dev_name, ENT_QUOTES, 'UTF-8');
     	$mac_addr = $offlinePrivateNetworkHost["$x"]['PhysAddress'];
+	$dev_info_attr = htmlspecialchars(json_encode(array("dev_name" => $dev_name, "mac_addr" => $mac_addr)), ENT_QUOTES, 'UTF-8');
     	$AddrSrc  = $offlinePrivateNetworkHost["$x"]['AddressSource'];
 
 		if($offlinePrivateNetworkHost["$x"]['Blocked']) $style = "&nbsp;";
-		else $style = "<input type='button' id=" . "'offline-X-" .$k. "'" . " value='X' tabindex='0' title=\"remove computer named $dev_name\" name='{\"dev_name\":\"$dev_name\", \"mac_addr\":\"$mac_addr\"}'  class=\"btn confirm private\"></input>";
+		else $style = "<input type='button' id=" . "'offline-X-" .$k. "'" . " value='X' tabindex='0' title=\"remove computer named $dev_name_attr\" name='$dev_info_attr'  class=\"btn confirm private\"></input>";
 
     	if($k % 2) $odd = "";
     	else $odd = " class='odd'";
     	echo "
 		    <tr $odd>
-	        <td headers='offline-device-host-name'><a href='javascript:void(0)' tabindex='0' class=\"label device-name private\"><u>" , $offlinePrivateNetworkHost["$x"]['HostName'] , "</u></a>
+	        <td headers='offline-device-host-name'><a href='javascript:void(0)' tabindex='0' class=\"label device-name private\"><u>" , htmlspecialchars($offlinePrivateNetworkHost["$x"]['HostName'], ENT_NOQUOTES, 'UTF-8') , "</u></a>
 
 				<div class=\"device-info\">
 					<dl><dd><br/></dd>";
@@ -805,7 +808,8 @@ $(document).ready(function() {
 	for ($j=0; $j < $Hotspot_SSIDNumberOfEntries; $j++) {
                  $Hotspot_SSID_clients = get_hotspot_clients($j+1);
       		for ($i=0; $i < count($Hotspot_SSID_clients); $i++) { 
-	      		$Hostname      = htmlspecialchars($Hotspot_SSID_clients[$i]['Hostname'], ENT_NOQUOTES, 'UTF-8');
+			$Hostname      = $Hotspot_SSID_clients[$i]['Hostname'];
+			$HostnameHtml = htmlspecialchars($Hostname, ENT_NOQUOTES, 'UTF-8');
 	      		$MACAddress    = $Hotspot_SSID_clients[$i]['MACAddress'];
 	      		$RSSILevel     = $Hotspot_SSID_clients[$i]['RSSILevel'];
 	      		$IPv4Address   = $Hotspot_SSID_clients[$i]['IPv4Address'];
@@ -838,11 +842,12 @@ $(document).ready(function() {
 
 	      		}
 
+			$disconnectInfoAttr = htmlspecialchars(json_encode(array('gre_ssid' => (string)$gre_ssid, 'dev_name' => $Hostname, 'mac_addr' => $MACAddress)), ENT_QUOTES, 'UTF-8');
 	         	if($i % 2) $odd = "";
 					else $odd = " class='odd'";
 
          		echo '<tr' .$odd. '>';
-         		echo '<td headers="xfinitywifi-host-name"><a href="javascript:void(0)" tabindex="0" class="label device-name"><u>'. $Hostname .'</u></a>';
+		echo '<td headers="xfinitywifi-host-name"><a href="javascript:void(0)" tabindex="0" class="label device-name"><u>'. $HostnameHtml .'</u></a>';
 				echo '<div class="device-info">';	
 					echo '<dl><dd><br/></dd>';
 					echo '<dd><b>IPv6 Prefix</b><br/>'. $IPv6Prefix. '</dd>';
@@ -858,7 +863,7 @@ $(document).ready(function() {
                 echo '<td headers="xfinitywifi-rssi-level">'. $RSSILevel." dBm";
                 echo '<td headers="xfinitywifi-mac-address">'. $MACAddress;
 		if($macEntry!="1")
-                	echo "<td headers=\"xfinitywifi-disconnect-button\"><input type='button' id=" . "'hotspot-X-" .$i. "'" . "  value='X' tabindex='0' name=\"{'gre_ssid':'$gre_ssid','dev_name':'$Hostname','mac_addr':'$MACAddress'}\" title='disconnect and deny Wi-Fi access to this device'  class='XfinitySSID btn confirm'></input></td>";
+	echo "<td headers=\"xfinitywifi-disconnect-button\"><input type='button' id=" . "'hotspot-X-" .$i. "'" . "  value='X' tabindex='0' name='$disconnectInfoAttr' title='disconnect and deny Wi-Fi access to this device'  class='XfinitySSID btn confirm'></input></td>";
 		    	echo '</tr>';
       		}//end of for;
 	}
@@ -913,7 +918,7 @@ for ($i=0; $i < $onlinePrivateNetworkHost['hostNum']; $i++) {
 
 			<div  class=\"form-row\">
         		<span  class=\"readonlyLabel\" name=\"host_name\">Host Name:</span>
-        		<span  class=\"value\">" . $onlinePrivateNetworkHost["$i"]['HostName'] . "</span>
+		<span  class=\"value\">" . htmlspecialchars($onlinePrivateNetworkHost["$i"]['HostName'], ENT_NOQUOTES, 'UTF-8') . "</span>
 			</div>
 			<div  class=\"form-row odd\">
 			    <span  class=\"readonlyLabel\">Connection:</span>
@@ -980,7 +985,7 @@ for ($i=0; $i < $offlinePrivateNetworkHost['hostNum']; $i++) {
         <form id=\"pageForm-" .$ID. "\"   class=\"pageForm\">
                         <div  class=\"form-row\">
                         <span  class=\"readonlyLabel\" name=\"host_name\">"._('Host Name:')."</span>
-                        <span  class=\"value\">" . $offlinePrivateNetworkHost["$i"]['HostName'] . "</span>
+                        <span  class=\"value\">" . htmlspecialchars($offlinePrivateNetworkHost["$i"]['HostName'], ENT_NOQUOTES, 'UTF-8') . "</span>
                         </div>
                         <div  class=\"form-row odd\">
                             <span  class=\"readonlyLabel\">"._('Connection:')."</span>

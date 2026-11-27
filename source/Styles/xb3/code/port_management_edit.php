@@ -102,6 +102,9 @@ for ($i = count($connDevArray) - 1; $i >= 0; --$i) {
 		$connDevArray[$i]["Layer1Interface"] = $tempType["connectionType"];
 	}
 }
+for ($i = 0; $i < count($connDevArray); $i++) {
+	$connDevArray[$i]['HostName'] = htmlspecialchars($connDevArray[$i]['HostName'], ENT_NOQUOTES, 'UTF-8');
+}
 
 ?>
 
